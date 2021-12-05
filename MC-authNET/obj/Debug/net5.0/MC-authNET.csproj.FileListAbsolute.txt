@@ -1,0 +1,34 @@
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.exe
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.deps.json
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.runtimeconfig.json
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.runtimeconfig.dev.json
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.dll
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\ref\MC-authNET.dll
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\MC-authNET.pdb
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.csproj.AssemblyReference.cache
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.GeneratedMSBuildEditorConfig.editorconfig
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.AssemblyInfoInputs.cache
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.AssemblyInfo.cs
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.csproj.CoreCompileInputs.cache
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.dll
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\ref\MC-authNET.dll
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.pdb
+E:\programmation\.NET\mc projet\MC-authNET\obj\Debug\net5.0\MC-authNET.genruntimeconfig.cache
+E:\programmation\.NET\mc projet\MC-authNET\bin\Debug\net5.0\Newtonsoft.Json.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.exe
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.deps.json
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.runtimeconfig.json
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.runtimeconfig.dev.json
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\ref\MC-authNET.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\MC-authNET.pdb
+E:\programmation\.NET\MCAuthNET\MC-authNET\bin\Debug\net5.0\Newtonsoft.Json.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.csproj.AssemblyReference.cache
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.GeneratedMSBuildEditorConfig.editorconfig
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.AssemblyInfoInputs.cache
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.AssemblyInfo.cs
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.csproj.CoreCompileInputs.cache
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\ref\MC-authNET.dll
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.pdb
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.genruntimeconfig.cache
