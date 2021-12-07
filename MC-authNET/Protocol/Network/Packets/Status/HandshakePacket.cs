@@ -21,10 +21,10 @@ namespace MC_authNET.Network.Packet
 
         public override void Send()
         {
-            stream.WriteVarInt((int)ClientStatus.ProtocolVersion);
+            stream.WriteVarInt((int)stream.ProtocolVersion);
             stream.WriteString(stream.sv_adress);
             stream.WriteShort(stream.sv_port);
-            stream.WriteVarInt((int)ClientStatus.NextState);
+            stream.WriteVarInt((int)stream.NextState);
 
             stream.SendPacket(PacketId);
         }

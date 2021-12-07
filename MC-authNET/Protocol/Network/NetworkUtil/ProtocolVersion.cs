@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Network
 {
-    enum ProtocolVersion : int
+    public enum ProtocolVersion : int
     {
        v_1_18 = 757,
        v_1_17_1 = 756,

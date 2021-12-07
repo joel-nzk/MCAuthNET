@@ -33,10 +33,10 @@ namespace MC_authNET
             Console.ForegroundColor = ConsoleColor.Gray;
 
            
-            MinecraftUser mc_user = new MinecraftUser(email,username, password, status);
-            Client client = new Client(sv_adress, sv_port);
+            MinecraftUser user = new MinecraftUser(email,username, password, status);
+            MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
 
-            client.LoginToServer(mc_user);
+            client.LoginToServer(user);
             //JToken jsonData = JToken.Parse(client.LoginToServer(mc_user).JsonContent);
 
            

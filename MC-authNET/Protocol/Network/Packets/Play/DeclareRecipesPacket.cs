@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MC_authNET.Network
+namespace MC_authNET.Protocol.Network.Packets.Play
 {
-	public enum ConnectionState
-	{
-		Status = 1,
-		Login = 2,
-		Play = 3
-	}
+    class DeclareRecipesPacket
+    {
+    }
 }

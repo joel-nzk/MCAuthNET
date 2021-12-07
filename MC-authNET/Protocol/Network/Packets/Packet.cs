@@ -14,8 +14,7 @@ namespace MC_authNET.Network.Packet
     {
         public MinecraftStream stream;
         protected int PacketId = -1;
-
-
+    
 
         public abstract void Send();
 

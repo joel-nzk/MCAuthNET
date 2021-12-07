@@ -22,7 +22,7 @@ namespace MC_authNET.Network
 {
 
 
-    class Client
+    class MinecraftClient
     {
         private MinecraftStream stream;
         private TcpClient client;
@@ -32,7 +32,7 @@ namespace MC_authNET.Network
         public ushort sv_port;
        
        
-        public Client(string sv_adress, ushort sv_port)
+        public MinecraftClient(string sv_adress, ushort sv_port)
         {
             stream = new MinecraftStream();
             errorHandler = new ErrorHandler();
@@ -76,9 +76,9 @@ namespace MC_authNET.Network
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(e);
-                Environment.Exit(1);
+                string ErrorContext = $"An error occured while querying a Server List Ping interface";
+                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
+                errorHandler.DispayError();
             }
 
             return null;
@@ -90,7 +90,9 @@ namespace MC_authNET.Network
             {
                 //Connection to the server;
                 InitializeConnection();
-                ClientStatus.NextState = ConnectionState.Login;
+                int p_length = 0;
+                int p_id = 0;
+                stream.NextState = NextState.Play;
 
                 //C->S : Handshake 
                 HandshakePacket handshakePacket = new HandshakePacket(stream);
@@ -140,26 +142,17 @@ namespace MC_authNET.Network
                 }
 
 
-                int packet_Length = stream.ReadVarInt();
-                int packet_Id = stream.ReadVarInt();
-
-                //Console.WriteLine($"packet_Length : {packet_Length}");
-                //Console.WriteLine($"packet_Id : {packet_Id}");
+                p_length = stream.ReadVarInt();
+                p_id = stream.ReadVarInt();
 
 
-                //TODO: Description should be improved
-                //Enables compression. If compression is enabled,
-                //all following packets are encoded in the compressed packet format.
-                //Negative or zero values will disable compression,
-                //meaning the packet format should remain in the uncompressed packet format.
-                //However, this packet is entirely optional, and if not sent,
-                //compression will also not be enabled (the notchian server does not send the packet when compression is disabled).
-                if (packet_Id == 0x03)
+                //TODO: Need a description
+                if (p_id == 0x03)
                 {
                     //S->C : Set Compression (Optional)
                     int compression_threshold = stream.ReadVarInt();
                     Console.WriteLine("Compression enabled !");
-                    Console.WriteLine($"packet_Id : {packet_Id}");
+                    Console.WriteLine($"packet_Id : {p_id}");
                 }
 
                 //S->C : Login Success
@@ -167,14 +160,22 @@ namespace MC_authNET.Network
                 int name_length = stream.ReadVarInt();
                 string name = stream.ReadString(name_length);
 
-                /*Console.WriteLine($"uuid : {uuid}");
-                Console.WriteLine($"name_length : {name_length}");
-                Console.WriteLine($"name : {name}");*/
 
-                Thread.Sleep(3000);
+                //Switching NextState into play mode
+                stream.NextState = NextState.Play;
 
-                int p_length = stream.ReadVarInt();
-                int p_id = stream.ReadVarInt();
+
+
+                JoinGamePacket joinGamePacket = new JoinGamePacket(stream);
+                joinGamePacket.Read();
+
+
+
+                p_length = stream.ReadVarInt();
+                p_id = stream.ReadVarInt();
+
+
+                Console.WriteLine(p_id);
 
 
                 // TODO: Must handle all the packets of the login sequence according to -->
@@ -204,9 +205,9 @@ namespace MC_authNET.Network
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(e);
-                Environment.Exit(1);
+                string ErrorContext = $"An error occured while login a user to \"{sv_adress}:{sv_port}\"";
+                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
+                errorHandler.DispayError();
             }          
         }
 

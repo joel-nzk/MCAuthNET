@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Numerics;
 using System.Net.Sockets;
+using MC_authNET.Protocol.Network;
 
 namespace MC_authNET.Network.Util
 {
@@ -14,6 +15,10 @@ namespace MC_authNET.Network.Util
     {
         public NetworkStream stream;
         public List<byte> Buffer;
+
+        public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_17_1;
+        public NextState NextState = NextState.Status;
+
 
         public string sv_adress;
         public ushort sv_port;
@@ -192,8 +197,6 @@ namespace MC_authNET.Network.Util
 
 
         #endregion
-
-
 
 
 
