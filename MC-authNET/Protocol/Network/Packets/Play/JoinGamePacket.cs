@@ -21,18 +21,14 @@ namespace MC_authNET.Protocol.Network.Packets.Play
 
         public override void Send()
         {
-            stream.WriteVarInt((int)stream.ProtocolVersion);
-            stream.WriteString(stream.sv_adress);
-            stream.WriteShort(stream.sv_port);
-            stream.WriteVarInt((int)stream.NextState);
 
-            stream.SendPacket(PacketId);
         }
 
         public void Read()
         {
             int packet_length = stream.ReadVarInt();
-            stream.ReadBytes(packet_length);         
+            stream.ReadBytes(packet_length);
+            stream.Buffer.Clear();
         }
     }
 }

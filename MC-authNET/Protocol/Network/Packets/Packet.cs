@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Network.Packet
 {
+    //TODO: Should be an interface ?
     abstract class Packet
     {
         public MinecraftStream stream;

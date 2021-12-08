@@ -30,23 +30,13 @@ namespace MC_authNET.Network.Util
             Buffer = new List<byte>();
         }
 
+
+
    
         public void InitializeStream(TcpClient client)
         {
             stream = client.GetStream();
         }
-
-        public void Dispose()
-        {
-            stream.Close();
-            Buffer.Clear();
-        }
-
-        public void Flush()
-        {
-            stream.Flush();           
-        }
-
 
         public void SendPacket(int id)
         {
@@ -70,6 +60,9 @@ namespace MC_authNET.Network.Util
             stream.Flush();
         }
 
+
+
+      
 
         #region Writing
         public void WriteVarInt(int value)
@@ -156,13 +149,12 @@ namespace MC_authNET.Network.Util
             return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
         }
 
-        public  byte[] ReadBytes(int length)
+        public byte[] ReadBytes(int length)
         {
             byte[] data = new byte[length];
             stream.Read(data);
             return data;
         }
-
         public int ReadVarInt()
         {
             int value = 0;
@@ -171,13 +163,15 @@ namespace MC_authNET.Network.Util
 
             while (true)
             {
-                currentByte = stream.ReadByte();
+                currentByte = stream.ReadByte();               
                 value |= (currentByte & 0x7F) << (length++ * 7);
                 if (length > 5) throw new IOException("VarInt too big");
                 if ((currentByte & 0x80) != 0x80) break;
             }
             return value;
         }
+
+    
 
         public  long ReadVarLong()
         {
@@ -291,7 +285,20 @@ namespace MC_authNET.Network.Util
 
         #endregion
 
-        
+        public void Dispose()
+        {
+            stream.Close();
+            Buffer.Clear();
+        }
+
+        public void Flush()
+        {
+            stream.Flush();
+        }
+
+
+
+
 
     }
 }

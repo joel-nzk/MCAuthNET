@@ -18,7 +18,7 @@ namespace MC_authNET
     class Program
     {
         public static string email = "myemail@gmail.com";
-        public static string username = "player_name";
+        public static string username = "zendenn300";
         public static string password = "pa$$w0rd";
         public static AccountStatus status = AccountStatus.Offline;
 

@@ -30,15 +30,15 @@ namespace MC_authNET.Network
 
         public string sv_adress;
         public ushort sv_port;
-       
-       
+
+
         public MinecraftClient(string sv_adress, ushort sv_port)
         {
             stream = new MinecraftStream();
             errorHandler = new ErrorHandler();
             stream.sv_adress = this.sv_adress = sv_adress;
             stream.sv_port = this.sv_port = sv_port;
-            
+
         }
 
         public ResponsePacket ServerListPing()
@@ -49,7 +49,6 @@ namespace MC_authNET.Network
 
             try
             {
-                
 
 
                 //C->S : Handshake 
@@ -60,7 +59,7 @@ namespace MC_authNET.Network
                 //C->S - Request Packet
                 RequestPacket requestPacket = new RequestPacket(stream);
                 requestPacket.Send();
-    
+
 
                 //S->C - Response
                 int Packetlength = stream.ReadVarInt();
@@ -72,7 +71,7 @@ namespace MC_authNET.Network
                 string jsonContent = stream.ReadString(jsonLength);
                 DisposeAll();
 
-                return new ResponsePacket(Packetlength,packetId,jsonLength, jsonContent);
+                return new ResponsePacket(Packetlength, packetId, jsonLength, jsonContent);
             }
             catch (Exception e)
             {
@@ -83,16 +82,16 @@ namespace MC_authNET.Network
 
             return null;
         }
-        
+
         public void LoginToServer(MinecraftUser user)
-        {         
+        {
             try
             {
                 //Connection to the server;
                 InitializeConnection();
                 int p_length = 0;
                 int p_id = 0;
-                stream.NextState = NextState.Play;
+                stream.NextState = NextState.Login;
 
                 //C->S : Handshake 
                 HandshakePacket handshakePacket = new HandshakePacket(stream);
@@ -115,18 +114,18 @@ namespace MC_authNET.Network
                     string server_id = stream.ReadString(20);
 
                     int public_key_length = stream.ReadVarInt();
-                    byte[] public_key = stream.ReadBytes( public_key_length);
+                    byte[] public_key = stream.ReadBytes(public_key_length);
 
                     int verify_token_length = stream.ReadVarInt();
                     byte[] verify_token = stream.ReadBytes(verify_token_length);
 
 
                     //Generate shared secret (must be 16)
-                   /* byte[] shared_secret = RandomByteArray(16);
-                    string hash_server_id = MinecraftShaDigest(server_id, shared_secret, public_key);
+                    /* byte[] shared_secret = RandomByteArray(16);
+                     string hash_server_id = MinecraftShaDigest(server_id, shared_secret, public_key);
 
-                    string crypted_verify_token = MinecraftShaDigest(verify_token);
-                    string crypted_shared_secret = MinecraftShaDigest(shared_secret);*/
+                     string crypted_verify_token = MinecraftShaDigest(verify_token);
+                     string crypted_shared_secret = MinecraftShaDigest(shared_secret);*/
 
 
                     //Both server and client need to make a request to sessionserver.mojang.com if the server is in online-mode.
@@ -166,57 +165,33 @@ namespace MC_authNET.Network
 
 
 
+                
+                // https://wiki.vg/Protocol_FAQ#What.27s_the_normal_login_sequence_for_a_client.3F
                 JoinGamePacket joinGamePacket = new JoinGamePacket(stream);
                 joinGamePacket.Read();
 
 
-
-                p_length = stream.ReadVarInt();
-                p_id = stream.ReadVarInt();
-
-
-                Console.WriteLine(p_id);
+                Thread.Sleep(2000);
 
 
                 // TODO: Must handle all the packets of the login sequence according to -->
-                // https://wiki.vg/Protocol_FAQ#What.27s_the_normal_login_sequence_for_a_client.3F
+                Update();
 
-
-                /*while (client.Connected)
-                {
-                    
 
                 }
-
-
-
-                //S->C : Keep Alive (serverbound)
-                    long keep_alive_id = stream.ReadVarLong();
-         
-                    //C->S : Keep Alive (clientbound)
-                    KeepAlivePacket keepAlivePacket = new KeepAlivePacket(stream);
-                    keepAlivePacket.KeepAliveID = keep_alive_id;
-                    keepAlivePacket.Send();
-                */
-
-
-
-
-            }
             catch (Exception e)
             {
                 string ErrorContext = $"An error occured while login a user to \"{sv_adress}:{sv_port}\"";
                 errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
                 errorHandler.DispayError();
-            }          
-        }
-
+            }
+        } 
 
         private void InitializeConnection()
-        {       
+        {
             Console.WriteLine($"Connecting to {sv_adress}:{sv_port}");
 
-            
+
 
             try
             {
@@ -228,25 +203,25 @@ namespace MC_authNET.Network
                     stream.InitializeStream(client);
                 }
 
-                
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 string ErrorContext = $"An error occured while connecting to \"{sv_adress}:{sv_port}\"";
-                errorHandler.Add(new ErrorMessage(e.Message,ConsoleColor.Red, ErrorContext));
+                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
                 errorHandler.DispayError();
             }
 
-            
-            
+
+
         }
 
-        private void CheckHandshakePacketError(int packetId,int jsonLenght)
+        private void CheckHandshakePacketError(int packetId, int jsonLenght)
         {
             if (packetId != 0x00)
             {
                 string ErrorContext = $"An error occured while querying a Server List Ping interface";
-                errorHandler.Add(new ErrorMessage("Invalid Packet ID", ConsoleColor.Red, ErrorContext));            
+                errorHandler.Add(new ErrorMessage("Invalid Packet ID", ConsoleColor.Red, ErrorContext));
             }
 
             if (jsonLenght == 0)
@@ -258,7 +233,60 @@ namespace MC_authNET.Network
             errorHandler.DispayError();
         }
 
- 
+
+        #region WORK IN PROGRESS
+        private void Update()
+        {
+
+
+            while (client.Connected)
+            {
+
+                if (stream.stream.DataAvailable)
+                {
+                    List<byte> buff = new List<byte>();
+                    int p_length = stream.ReadVarInt();
+                    int p_id = stream.ReadVarInt();
+                    WriteVarInt2(buff,p_id);
+                    var packet_id = buff.ToArray().Length;
+
+                    var reste = p_length-packet_id;
+
+                    
+                    Console.WriteLine($"id : 0x{p_id.ToString("x2") }");
+                    Console.WriteLine($"Length {p_length}");
+                    Console.WriteLine($"taille id {packet_id}");
+                    Console.WriteLine($"reste {reste}");
+
+
+                    stream.ReadBytes(reste);
+                    Thread.Sleep(1000);
+                  
+                }
+               
+    
+            }
+
+
+        }
+        public void WriteVarInt2(List<byte> buff, int value)
+        {
+            while (true)
+            {
+                if ((value & ~0x7F) == 0)
+                {
+                    buff.Add((byte)value);
+                    return;
+                }
+
+                buff.Add((byte)((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+        }
+
+        #endregion
+
+
 
         private void DisposeAll()
         {
