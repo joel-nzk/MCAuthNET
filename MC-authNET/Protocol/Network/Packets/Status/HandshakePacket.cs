@@ -12,14 +12,13 @@ namespace MC_authNET.Network.Packet
     class HandshakePacket : Packet
     {
 
-        public HandshakePacket(MinecraftStream stream)
+        public HandshakePacket()
         {
             PacketId = 0x00;
-            this.stream = stream;
         }
 
 
-        public override void Send()
+        public override void Send(MinecraftStream stream)
         {
             stream.WriteVarInt((int)stream.ProtocolVersion);
             stream.WriteString(stream.sv_adress);

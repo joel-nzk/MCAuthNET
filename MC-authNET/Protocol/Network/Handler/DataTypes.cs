@@ -4,99 +4,45 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
-using System.Numerics;
-using System.Net.Sockets;
-using MC_authNET.Protocol.Network;
 
-namespace MC_authNET.Network.Util
+namespace MC_authNET.Protocol.Network.Handler
 {
-    public class MinecraftStream
+    [Obsolete("Not used any more", true)]
+
+    class DataTypes
     {
-        private NetworkStream networkStream;
-        public List<byte> Buffer;
 
-        public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_17_1;
-        public ConnectionState NextState = ConnectionState.Status;
-
-
-        public string sv_adress;
-        public ushort sv_port;
-
-
-
-        public MinecraftStream()
-        {
-            Buffer = new List<byte>();
-        }
-
-
-
-   
-        public void InitializeStream(TcpClient client)
-        {
-            networkStream = client.GetStream();
-        }
-
-        public void SendPacket(int id)
-        {
-            byte[] buffer = Buffer.ToArray();
-            Buffer.Clear();
-
-            WriteVarInt(id);
-            var packet_id = Buffer.ToArray();
-            Buffer.Clear();
-
-            WriteVarInt(buffer.Length + packet_id.Length);
-            var bufferLenght = Buffer.ToArray();
-
-
-            networkStream.Write(bufferLenght, 0, bufferLenght.Length);
-            networkStream.Write(packet_id, 0, packet_id.Length);
-            networkStream.Write(buffer, 0, buffer.Length);
-
-
-            Buffer.Clear();
-            networkStream.Flush();
-        }
-
-
-
-      
 
         #region Writing
-        public void WriteVarInt(int value, List<byte> _buffer = null)
+        public void WriteVarInt(List<byte> Buffer, int value)
         {
-            List<byte> local_buffer = _buffer == null ? Buffer : _buffer;
-
-  
             while (true)
             {
                 if ((value & ~0x7F) == 0)
                 {
-                    local_buffer.Add((byte)value);
+                    Buffer.Add((byte)value);
                     return;
                 }
 
-                local_buffer.Add((byte)((value & 0x7F) | 0x80));
+                Buffer.Add((byte)((value & 0x7F) | 0x80));
                 value >>= 7;
             }
         }
 
-        public  void WriteShort(ushort value)
+        public void WriteShort(List<byte> Buffer, ushort value)
         {
             Buffer.AddRange(BitConverter.GetBytes(value));
         }
 
-        public void WriteString(string value)
+        public void WriteString(List<byte> Buffer, string value)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(value);
-            WriteVarInt( bytes.Length);
+            WriteVarInt(Buffer,bytes.Length);
             Buffer.AddRange(bytes);
 
         }
 
-        public void WriteVarLong(long value)
+        public void WriteVarLong(List<byte> Buffer, long value)
         {
             while (true)
             {
@@ -112,37 +58,31 @@ namespace MC_authNET.Network.Util
             }
         }
 
-  
 
-        public void WriteByte(int b)
-        {
-            networkStream.WriteByte((byte)b);
-        }
 
-        public void WriteLong(long value)
+        public void WriteByte(Stream stream,int b)
         {
-            byte[] bytes = BitConverter.GetBytes(value);
-            Buffer.AddRange(bytes);
+            stream.WriteByte((byte)b);
         }
 
         #endregion
 
         #region Reading
-        public string ReadString(int length)
+        public string ReadString(Stream stream,int length)
         {
             byte[] data = new byte[length];
 
-            networkStream.Read(data);
+            stream.Read(data);
 
             return Encoding.UTF8.GetString(data);
         }
 
-        public string ReadUUID(int length)
+        public string ReadUUID(Stream stream, int length)
         {
 
             byte[] data = new byte[length];
 
-            networkStream.Read(data);
+            stream.Read(data);
 
             ulong b1 = BitConverter.ToUInt64(data, 0);
             ulong b2 = BitConverter.ToUInt64(data, 8);
@@ -158,13 +98,13 @@ namespace MC_authNET.Network.Util
             return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
         }
 
-        public byte[] ReadBytes(int length)
+        public byte[] ReadBytes(Stream stream, int length)
         {
             byte[] data = new byte[length];
-            networkStream.Read(data);
+            stream.Read(data);
             return data;
         }
-        public int ReadVarInt()
+        public int ReadVarInt(Stream stream)
         {
             int value = 0;
             int length = 0;
@@ -172,7 +112,7 @@ namespace MC_authNET.Network.Util
 
             while (true)
             {
-                currentByte = networkStream.ReadByte();               
+                currentByte = stream.ReadByte();
                 value |= (currentByte & 0x7F) << (length++ * 7);
                 if (length > 5) throw new IOException("VarInt too big");
                 if ((currentByte & 0x80) != 0x80) break;
@@ -180,31 +120,9 @@ namespace MC_authNET.Network.Util
             return value;
         }
 
-        public int ReadVarInt2(Queue<byte> data)
-        {
-            int value = 0;
-            int length = 0;
-            int currentByte = 0;
-
-            while (true)
-            {
-                currentByte = ReadNextByte(data);
-                value |= (currentByte & 0x7F) << (length++ * 7);
-                if (length > 5) throw new IOException("VarInt too big");
-                if ((currentByte & 0x80) != 0x80) break;
-            }
-            return value;
-        }
-
-        public byte ReadNextByte(Queue<byte> cache)
-        {
-            byte result = cache.Dequeue();
-            return result;
-        }
 
 
-
-        public long ReadVarLong()
+        public long ReadVarLong(Stream stream)
         {
             long value = 0;
             int length = 0;
@@ -212,20 +130,12 @@ namespace MC_authNET.Network.Util
 
             while (true)
             {
-                currentByte = networkStream.ReadByte();
+                currentByte = stream.ReadByte();
                 value |= (currentByte & 0x7F) << (length++ * 7);
                 if (length > 10) throw new IOException("VarLong is too big");
                 if ((currentByte & 0x80) != 0x80) break;
             }
             return value;
- 
-        }
-
-        public long ReadLong()
-        {       
-            byte[] data = new byte[8];
-            networkStream.Read(data);
-            return BitConverter.ToInt64(data);
         }
 
 
@@ -243,7 +153,7 @@ namespace MC_authNET.Network.Util
         *
         */
 
-        public static string MinecraftShaDigest(string server_id, byte[] shared_secret, byte[] public_key)
+       /* public static string MinecraftShaDigest(string server_id, byte[] shared_secret, byte[] public_key)
         {
             var sha1 = SHA1.Create();
 
@@ -295,7 +205,7 @@ namespace MC_authNET.Network.Util
             {
                 return b.ToString("x").TrimStart('0');
             }
-        }
+        }*/
 
         public static string ByteArrayToString(byte[] bytes)
         {
@@ -323,26 +233,6 @@ namespace MC_authNET.Network.Util
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            networkStream.Close();
-            Buffer.Clear();
-        }
-
-        public NetworkStream Get()
-        {
-            return networkStream;
-        }
-
-        public void Flush()
-        {
-            networkStream.Flush();
-        }
-
-
-
-
 
     }
 }

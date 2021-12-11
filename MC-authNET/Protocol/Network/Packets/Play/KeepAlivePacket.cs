@@ -12,15 +12,14 @@ namespace MC_authNET.Protocol.Network.Packets.Play
     {
         public long KeepAliveID;
 
-        public KeepAlivePacket(MinecraftStream stream)
+        public KeepAlivePacket()
         {
-            PacketId = 0x21;
-            this.stream = stream;
+            PacketId = 0x0F;
         }
 
-        public override void Send()
+        public override void Send(MinecraftStream stream)
         {        
-            stream.WriteVarLong(KeepAliveID);
+            stream.WriteLong(KeepAliveID);
             stream.SendPacket(PacketId);
         }
     }

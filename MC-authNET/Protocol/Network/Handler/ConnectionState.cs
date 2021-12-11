@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Network
 {
-	public enum NextState
+	public enum ConnectionState
 	{
 		Status = 1,
 		Login = 2,

@@ -12,19 +12,18 @@ namespace MC_authNET.Protocol.Network.Packets.Play
     {
 
 
-        public JoinGamePacket(MinecraftStream stream)
+        public JoinGamePacket()
         {
             PacketId = 0x26;
-            this.stream = stream;
         }
 
 
-        public override void Send()
+        public override void Send(MinecraftStream stream)
         {
 
         }
 
-        public void Read()
+        public void Read(MinecraftStream stream)
         {
             int packet_length = stream.ReadVarInt();
             stream.ReadBytes(packet_length);

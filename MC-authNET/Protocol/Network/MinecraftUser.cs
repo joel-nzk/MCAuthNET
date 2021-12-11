@@ -9,25 +9,25 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Minecraft
 {
-    enum AccountStatus { Online, Offline };
+    enum AccountType { Online, Offline };
     class MinecraftUser
     {
         public string name;
         public string email;
         public string password;
         public string uuid;
-        public AccountStatus status;
+        public AccountType accountType;
 
         public string accessToken;
 
-        public MinecraftUser(string email, string name, string password, AccountStatus status)
+        public MinecraftUser(string email, string name, string password, AccountType accountType)
         {
             this.email = email;
             this.name = name;
             this.password = password;
-            this.status = status;
+            this.accountType = accountType;
 
-            if(status == AccountStatus.Online)
+            if(accountType == AccountType.Online)
                 Fill_UUID_And_AcessToken();       
         }
 

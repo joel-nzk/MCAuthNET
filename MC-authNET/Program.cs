@@ -18,9 +18,9 @@ namespace MC_authNET
     class Program
     {
         public static string email = "myemail@gmail.com";
-        public static string username = "zendenn300";
+        public static string username = "console-player1";
         public static string password = "pa$$w0rd";
-        public static AccountStatus status = AccountStatus.Offline;
+        
 
         public static string sv_adress = "localhost";
         public static ushort sv_port = 25565;
@@ -33,15 +33,16 @@ namespace MC_authNET
             Console.ForegroundColor = ConsoleColor.Gray;
 
            
-            MinecraftUser user = new MinecraftUser(email,username, password, status);
+            MinecraftUser user = new MinecraftUser(email,username, password, AccountType.Offline);
             MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
 
             client.LoginToServer(user);
-            //JToken jsonData = JToken.Parse(client.LoginToServer(mc_user).JsonContent);
 
-           
-            //JToken jsonData = JToken.Parse(client.ServerListPing().JsonContent);         
+            //JToken jsonData = JToken.Parse(client.ServerListPing().JsonContent);
             //Console.WriteLine(jsonData);
+
+                   
+
         }
 
     }

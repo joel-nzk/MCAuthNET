@@ -12,14 +12,13 @@ namespace MC_authNET.Protocol.Network.Packets.Login
     {
         public string username;
 
-        public LoginStartPacket(MinecraftStream stream)
+        public LoginStartPacket()
         {
             PacketId = 0x00;
-            this.stream = stream;
         }
 
 
-        public override void Send()
+        public override void Send(MinecraftStream stream)
         {
             stream.WriteString(username);
             stream.SendPacket(PacketId);

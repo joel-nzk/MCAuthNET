@@ -9,14 +9,13 @@ namespace MC_authNET.Network.Packet.Status
 {
     class RequestPacket : Packet
     {
-        public RequestPacket(MinecraftStream stream)
+        public RequestPacket()
         {
             PacketId = 0x00;
-            this.stream = stream;
         }
 
 
-        public override void Send()
+        public override void Send(MinecraftStream stream)
         {
             stream.WriteByte(0x01);
             stream.WriteByte(PacketId);

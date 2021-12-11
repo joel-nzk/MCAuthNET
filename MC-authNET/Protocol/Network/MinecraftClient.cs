@@ -27,6 +27,7 @@ namespace MC_authNET.Network
         private MinecraftStream stream;
         private TcpClient client;
         public ErrorHandler errorHandler;
+        //private PacketHandler packet = new PacketHandler(stream);
 
         public string sv_adress;
         public ushort sv_port;
@@ -52,13 +53,13 @@ namespace MC_authNET.Network
 
 
                 //C->S : Handshake 
-                HandshakePacket handshakePacket = new HandshakePacket(stream);
-                handshakePacket.Send();
+                HandshakePacket handshakePacket = new HandshakePacket();
+                handshakePacket.Send(stream);
 
 
                 //C->S - Request Packet
-                RequestPacket requestPacket = new RequestPacket(stream);
-                requestPacket.Send();
+                RequestPacket requestPacket = new RequestPacket();
+                requestPacket.Send(stream);
 
 
                 //S->C - Response
@@ -91,20 +92,20 @@ namespace MC_authNET.Network
                 InitializeConnection();
                 int p_length = 0;
                 int p_id = 0;
-                stream.NextState = NextState.Login;
+                stream.NextState = ConnectionState.Login;
 
                 //C->S : Handshake 
-                HandshakePacket handshakePacket = new HandshakePacket(stream);
-                handshakePacket.Send();
+                HandshakePacket handshakePacket = new HandshakePacket();
+                handshakePacket.Send(stream);
 
                 //C->S Login start
-                LoginStartPacket loginStartPacket = new LoginStartPacket(stream);
+                LoginStartPacket loginStartPacket = new LoginStartPacket();
                 loginStartPacket.username = user.name;
-                loginStartPacket.Send();
+                loginStartPacket.Send(stream);
 
 
 
-                if (user.status == AccountStatus.Online)
+                if (user.accountType == AccountType.Online)
                 {
                     //S->C : Encryption Request
                     int Packetlength = stream.ReadVarInt();
@@ -152,33 +153,20 @@ namespace MC_authNET.Network
                     int compression_threshold = stream.ReadVarInt();
                     Console.WriteLine("Compression enabled !");
                     Console.WriteLine($"packet_Id : {p_id}");
+                }else if(p_id == 0x02) //S->C : Login Success
+                {
+                    string uuid = stream.ReadUUID(16);
+                    int name_length = stream.ReadVarInt();
+                    string name = stream.ReadString(name_length);
+
+                    JoinGamePacket joinGamePacket = new JoinGamePacket();
+                    joinGamePacket.Read(stream);
+
+                    stream.NextState = ConnectionState.Play;                 
+                    Thread th = new Thread(new ThreadStart(Update));
+                    th.Start();
                 }
-
-                //S->C : Login Success
-                string uuid = stream.ReadUUID(16);
-                int name_length = stream.ReadVarInt();
-                string name = stream.ReadString(name_length);
-
-
-                //Switching NextState into play mode
-                stream.NextState = NextState.Play;
-
-
-
-                
-                // https://wiki.vg/Protocol_FAQ#What.27s_the_normal_login_sequence_for_a_client.3F
-                JoinGamePacket joinGamePacket = new JoinGamePacket(stream);
-                joinGamePacket.Read();
-
-
-                Thread.Sleep(2000);
-
-
-                // TODO: Must handle all the packets of the login sequence according to -->
-                Update();
-
-
-                }
+            }
             catch (Exception e)
             {
                 string ErrorContext = $"An error occured while login a user to \"{sv_adress}:{sv_port}\"";
@@ -234,54 +222,72 @@ namespace MC_authNET.Network
         }
 
 
+
         #region WORK IN PROGRESS
+
+
         private void Update()
         {
-
-
+            Stopwatch stopWatch = new Stopwatch();
             while (client.Connected)
             {
-
-                if (stream.stream.DataAvailable)
-                {
-                    List<byte> buff = new List<byte>();
-                    int p_length = stream.ReadVarInt();
-                    int p_id = stream.ReadVarInt();
-                    WriteVarInt2(buff,p_id);
-                    var packet_id = buff.ToArray().Length;
-
-                    var reste = p_length-packet_id;
-
-                    
-                    Console.WriteLine($"id : 0x{p_id.ToString("x2") }");
-                    Console.WriteLine($"Length {p_length}");
-                    Console.WriteLine($"taille id {packet_id}");
-                    Console.WriteLine($"reste {reste}");
-
-
-                    stream.ReadBytes(reste);
-                    Thread.Sleep(1000);
-                  
-                }
-               
-    
+                
+                stopWatch.Start();
+                HandlePacket();
+                stopWatch.Stop();
+                int elapsed = stopWatch.Elapsed.Milliseconds;
+                stopWatch.Reset();
+                if (elapsed < 100)
+                    Thread.Sleep(100 - elapsed);
             }
-
-
         }
-        public void WriteVarInt2(List<byte> buff, int value)
-        {
-            while (true)
-            {
-                if ((value & ~0x7F) == 0)
-                {
-                    buff.Add((byte)value);
-                    return;
-                }
 
-                buff.Add((byte)((value & 0x7F) | 0x80));
-                value >>= 7;
+        private void HandlePacket()
+        {
+            try
+            {
+                while (client.Available > 0)
+                {
+                    int p_size = stream.ReadVarInt();
+                    byte[] data = stream.ReadBytes(p_size);
+
+                    Console.Write(".");
+                    Queue<byte> packetData = new Queue<byte>();
+
+                    for (int i = 0; i < data.Length; i++)
+                        packetData.Enqueue(data[i]);
+
+                    int p_id = stream.ReadVarInt2(packetData);
+
+
+                    //TODO: Need to replace "stream.ReadLong()" by packetData
+                    /*switch (p_id)
+                    {
+                        case 0x21:
+                            Console.WriteLine($"id : 0x{p_id.ToString("X2")}");
+                            KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
+                            keepAlivePacket.KeepAliveID = stream.ReadLong();
+                            keepAlivePacket.Send(stream);
+                            break;
+                    }*/
+                }
             }
+            catch (Exception e)
+            {
+                string ErrorContext = $"An error occured while login a user to \"{sv_adress}:{sv_port}\"";
+                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
+                errorHandler.DispayError();
+            }
+        }
+
+
+     
+ 
+        public int GetVarIntLength(int value)
+        {
+            List<byte> _buffer = new List<byte>();
+            stream.WriteVarInt(value, _buffer);
+            return _buffer.Count;
         }
 
         #endregion

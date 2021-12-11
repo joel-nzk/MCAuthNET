@@ -10,14 +10,12 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Network.Packet
 {
-    //TODO: Should be an interface ?
-    abstract class Packet
+    public abstract class Packet
     {
-        public MinecraftStream stream;
         protected int PacketId = -1;
     
 
-        public abstract void Send();
+        public abstract void Send(MinecraftStream stream);
 
 
     }
