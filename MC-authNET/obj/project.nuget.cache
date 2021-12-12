@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "cVo3ECREIYZX00vPhwvnXAl3ntpwT+nlXynhQyaege0dbviSqMyNlo9DaL2akPwY6hWOuzOWWmgNRolrVNZv6A==",
+  "dgSpecHash": "MIjZqRlhVaYK0fxD6qFXOR/yWT6AG0hSMsSd5gTwwPJRZ+Ce8Or1Fpwk2tNNp0Z2I+2WUdxyGV7nxfEBUalsQw==",
   "success": true,
   "projectFilePath": "E:\\programmation\\.NET\\MCAuthNET\\MC-authNET\\MC-authNET.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\jojok\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+    "C:\\Users\\jojok\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\jojok\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.12\\microsoft.netcore.app.host.win-x64.5.0.12.nupkg.sha512"
   ],
   "logs": []
 }

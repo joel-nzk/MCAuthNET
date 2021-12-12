@@ -52,7 +52,7 @@ namespace MC_authNET.Protocol.Util
 
                 errors.Clear();
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Environment.Exit(1);
+                //Environment.Exit(1);
                                   
             }
         }

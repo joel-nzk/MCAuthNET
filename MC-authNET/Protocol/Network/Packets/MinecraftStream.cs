@@ -202,6 +202,21 @@ namespace MC_authNET.Network.Util
             return result;
         }
 
+        public long ReadLong2(byte[] data)
+        {
+            byte[] long_data = new byte[8];
+            Queue<byte> queue_data = new Queue<byte>(data); 
+            
+            for (int i = 0; i < 8; i++)
+            {
+                long_data[i] = ReadNextByte(queue_data);
+            }
+
+           
+            return BitConverter.ToInt64(long_data);
+        }
+
+
 
 
         public long ReadVarLong()
@@ -228,6 +243,7 @@ namespace MC_authNET.Network.Util
             return BitConverter.ToInt64(data);
         }
 
+       
 
         #endregion
 

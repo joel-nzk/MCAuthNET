@@ -32,3 +32,4 @@ E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.dll
 E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\ref\MC-authNET.dll
 E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.pdb
 E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.genruntimeconfig.cache
+E:\programmation\.NET\MCAuthNET\MC-authNET\obj\Debug\net5.0\MC-authNET.csproj.CopyComplete

@@ -21,6 +21,11 @@ using MC_authNET.Protocol.Network.Packets.Play;
 namespace MC_authNET.Network
 {
 
+    public struct PacketData
+    {
+        public int id { get; set; }
+        public byte[] data { get; set; }
+    }
 
     class MinecraftClient
     {
@@ -248,28 +253,18 @@ namespace MC_authNET.Network
             {
                 while (client.Available > 0)
                 {
-                    int p_size = stream.ReadVarInt();
-                    byte[] data = stream.ReadBytes(p_size);
-
-                    Console.Write(".");
-                    Queue<byte> packetData = new Queue<byte>();
-
-                    for (int i = 0; i < data.Length; i++)
-                        packetData.Enqueue(data[i]);
-
-                    int p_id = stream.ReadVarInt2(packetData);
+                    PacketData packetData = ReadPacketData();
 
 
-                    //TODO: Need to replace "stream.ReadLong()" by packetData
-                    /*switch (p_id)
+                    switch (packetData.id)
                     {
                         case 0x21:
-                            Console.WriteLine($"id : 0x{p_id.ToString("X2")}");
+                            Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
-                            keepAlivePacket.KeepAliveID = stream.ReadLong();
+                            keepAlivePacket.KeepAliveID = stream.ReadLong2(packetData.data);
                             keepAlivePacket.Send(stream);
                             break;
-                    }*/
+                    }
                 }
             }
             catch (Exception e)
@@ -283,11 +278,22 @@ namespace MC_authNET.Network
 
      
  
-        public int GetVarIntLength(int value)
+        public PacketData ReadPacketData()
         {
-            List<byte> _buffer = new List<byte>();
-            stream.WriteVarInt(value, _buffer);
-            return _buffer.Count;
+            PacketData packet = new PacketData();
+            Queue<byte> data = new Queue<byte>();     
+            int p_size = stream.ReadVarInt();
+            byte[] p_data = stream.ReadBytes(p_size);
+            
+
+            for (int i = 0; i < p_data.Length; i++)
+                data.Enqueue(p_data[i]);
+
+            packet.id = stream.ReadVarInt2(data);
+            packet.data = data.ToArray();
+
+
+            return packet;
         }
 
         #endregion
