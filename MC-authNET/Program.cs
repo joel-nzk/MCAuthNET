@@ -58,7 +58,7 @@ namespace MC_authNET
             Random rnd = new Random();
             int index = 0;
 
-            for (int i = 0; i < 90; i++)
+            for (int i = 0; i < 2; i++)
             {
                 if (index+1 >= names.Length)
                     index = 0;

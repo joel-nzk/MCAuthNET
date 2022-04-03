@@ -259,7 +259,7 @@ namespace MC_authNET.Network
                     switch (packetData.id)
                     {
                         case 0x21:
-                            Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
+                            //Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
                             keepAlivePacket.KeepAliveID = stream.ReadLong2(packetData.data);
                             keepAlivePacket.Send(stream);
