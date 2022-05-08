@@ -22,8 +22,9 @@ namespace MC_authNET.Utils.Extensions
 {
     public static class ConsoleMore
     {
+        private const ConsoleColor originalColor = ConsoleColor.Gray;
 
-        public static void WriteTitle(string title, ConsoleColor newColor = ConsoleColor.Gray)
+        public static void WriteTitle(string title, ConsoleColor newColor = originalColor)
         {
             using (StringReader reader = new StringReader(title))
             {
@@ -39,28 +40,34 @@ namespace MC_authNET.Utils.Extensions
                 } while (line != null);
             }
 
-            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop+2);
+            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop+1);
         }
 
-        public static void Write(string title, ConsoleColor newColor = ConsoleColor.Gray)
+        public static void WriteDebug(string text, ConsoleColor mainColor = ConsoleColor.DarkCyan, ConsoleColor secondaryColor = ConsoleColor.DarkBlue)
         {
-            ConsoleColor originalColor = Console.ForegroundColor;
+            Write($"[{DateTime.Now:HH:mm:ss}] [DEBUG] ", mainColor);
+            WriteLine(text, secondaryColor);
+        }
 
+        public static void WriteInfo(string text, ConsoleColor mainColor = ConsoleColor.DarkMagenta, ConsoleColor secondaryColor = ConsoleColor.Magenta)
+        {
+            Write($"[{DateTime.Now:HH:mm:ss}] [INFO] ", mainColor);
+            WriteLine(text, secondaryColor);
+        }
+
+
+        public static void Write(string title, ConsoleColor newColor = originalColor)
+        {
             Console.ForegroundColor = newColor;
-
             Console.Write(title);
-
             Console.ForegroundColor = originalColor;
         }
 
-        public static void WriteLine(string title, ConsoleColor newColor = ConsoleColor.Gray)
+        public static void WriteLine(string title, ConsoleColor newColor = originalColor)
         {
-            ConsoleColor originalColor = Console.ForegroundColor;
-
+            
             Console.ForegroundColor = newColor;
-
             Console.WriteLine(title);
-
             Console.ForegroundColor = originalColor;
         }
     }

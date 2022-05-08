@@ -17,6 +17,7 @@ using MC_authNET.Protocol.Network.Packets.Login;
 using MC_authNET.Protocol.Network;
 using MC_authNET.Protocol.Util;
 using MC_authNET.Protocol.Network.Packets.Play;
+using MC_authNET.Utils.Extensions;
 
 namespace MC_authNET.Network
 {
@@ -24,6 +25,7 @@ namespace MC_authNET.Network
     public struct PacketData
     {
         public int id { get; set; }
+        public int length { get; set; }
         public byte[] data { get; set; }
     }
 
@@ -50,8 +52,7 @@ namespace MC_authNET.Network
         private void InitializeConnection()
         {
             Console.WriteLine($"Connecting to {sv_adress}:{sv_port}");
-
-
+            
 
             try
             {
@@ -59,7 +60,9 @@ namespace MC_authNET.Network
 
                 if (client.Connected)
                 {
-                    Console.WriteLine("Connected !");
+                    ConsoleMore.WriteLine("Connection succesfull !",ConsoleColor.Green);
+
+
                     stream.InitializeStream(client);
                 }
 
@@ -79,7 +82,7 @@ namespace MC_authNET.Network
 
 
 
-        public ResponsePacket ServerListPing()
+        public void ServerListPing()
         {
 
             //Connection to the server;
@@ -102,14 +105,11 @@ namespace MC_authNET.Network
                 //S->C - Response
                 int Packetlength = stream.ReadVarInt();
                 int packetId = stream.ReadVarInt();
-                int jsonLength = stream.ReadVarInt();
 
-
-                CheckHandshakePacketError(packetId, jsonLength);
-                string jsonContent = stream.ReadString(jsonLength);
+                string jsonContent = stream.ReadString();
                 DisposeAll();
 
-                return new ResponsePacket(Packetlength, packetId, jsonLength, jsonContent);
+                //return new ResponsePacket(Packetlength, packetId, jsonLength, jsonContent);
             }
             catch (Exception e)
             {
@@ -118,7 +118,7 @@ namespace MC_authNET.Network
                 errorHandler.DispayError();
             }
 
-            return null;
+    
         }
 
         public void LoginToServer(MinecraftUser user)
@@ -127,9 +127,10 @@ namespace MC_authNET.Network
             {
                 //Connection to the server;
                 InitializeConnection();
-                int p_length = 0;
-                int p_id = 0;
                 stream.NextState = ConnectionState.Login;
+
+
+
 
                 //C->S : Handshake 
                 HandshakePacket handshakePacket = new HandshakePacket();
@@ -145,17 +146,17 @@ namespace MC_authNET.Network
                 if (user.accountType == AccountType.Online)
                 {
                     //S->C : Encryption Request
-                    int Packetlength = stream.ReadVarInt();
-                    int packetId = stream.ReadVarInt();
+                    //int Packetlength = stream.ReadVarInt();
+                    //int packetId = stream.ReadVarInt();
 
-                    int server_id_length = stream.ReadVarInt();
-                    string server_id = stream.ReadString(20);
+                    //int server_id_length = stream.ReadVarInt();
+                    //string server_id = stream.ReadString(20);
 
-                    int public_key_length = stream.ReadVarInt();
-                    byte[] public_key = stream.ReadBytes(public_key_length);
+                    //int public_key_length = stream.ReadVarInt();
+                    //byte[] public_key = stream.ReadBytes(public_key_length);
 
-                    int verify_token_length = stream.ReadVarInt();
-                    byte[] verify_token = stream.ReadBytes(verify_token_length);
+                    //int verify_token_length = stream.ReadVarInt();
+                    //byte[] verify_token = stream.ReadBytes(verify_token_length);
 
 
                     //Generate shared secret (must be 16)
@@ -179,23 +180,22 @@ namespace MC_authNET.Network
                 }
 
 
-                p_length = stream.ReadVarInt();
-                p_id = stream.ReadVarInt();
+                int packet_length = stream.ReadVarInt();
+                int packetid = stream.ReadVarInt();
 
 
                 //TODO: Need a description
-                if (p_id == 0x03)
+                if (packetid == 0x03)
                 {
                     //S->C : Set Compression (Optional)
                     int compression_threshold = stream.ReadVarInt();
                     Console.WriteLine("Compression enabled !");
-                    Console.WriteLine($"packet_Id : {p_id}");
+                    Console.WriteLine($"packet_Id : {packetid}");
                 }
-                else if(p_id == 0x02) //S->C : Login Success
+                else if(packetid == 0x02) //S->C : Login Success
                 {
-                    string uuid = stream.ReadUUID(16);
-                    int name_length = stream.ReadVarInt();
-                    string name = stream.ReadString(name_length);
+                    string uuid = stream.ReadUUID();
+                    string name = stream.ReadString();
 
                     JoinGamePacket joinGamePacket = new JoinGamePacket();
                     joinGamePacket.Read(stream);
@@ -241,19 +241,25 @@ namespace MC_authNET.Network
                 {
                     PacketData packetData = ReadPacketData();
 
+                    //ConsoleMore.WriteDebug($"Packet : 0x{packetData.id.ToString("X2")}");
 
                     switch (packetData.id)
                     {
                         case 0x21:
                             //Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
-                            keepAlivePacket.KeepAliveID = stream.ReadLong2(packetData.data);
+                            keepAlivePacket.KeepAliveID = stream.ReadLong(packetData.data);
                             keepAlivePacket.Send(stream);
+                            ConsoleMore.WriteDebug("Keep Alive packet received");
+                            break;
+                        case 0x0F:
+                            ChatMessageClientbound ChatMessageClientboundPacket = new ChatMessageClientbound();
+                            ConsoleMore.WriteDebug("Chat Message (clientbound) packet received");
                             break;
                     }
                 }
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 string ErrorContext = $"An error occured while login a user to \"{sv_adress}:{sv_port}\"";
                 errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
@@ -267,16 +273,16 @@ namespace MC_authNET.Network
         public PacketData ReadPacketData()
         {
             PacketData packet = new PacketData();
-            Queue<byte> data = new Queue<byte>();     
+            List<byte> data = new List<byte>();     
             int p_size = stream.ReadVarInt();
             byte[] p_data = stream.ReadBytes(p_size);
-            
 
-            for (int i = 0; i < p_data.Length; i++)
-                data.Enqueue(p_data[i]);
 
-            packet.id = stream.ReadVarInt2(data);
+            p_data.ToList().ForEach(x => data.Add(x) );
+
+            packet.id = stream.ReadVarInt(data.ToArray());
             packet.data = data.ToArray();
+            packet.length = p_size;
 
 
             return packet;

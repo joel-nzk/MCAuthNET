@@ -8,6 +8,7 @@ namespace MC_authNET.Network
 {
     public enum ProtocolVersion : int
     {
+       v_1_18_2 = 758,
        v_1_18 = 757,
        v_1_17_1 = 756,
        v_1_17 = 755,
