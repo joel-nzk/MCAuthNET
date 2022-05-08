@@ -47,6 +47,38 @@ namespace MC_authNET.Network
 
         }
 
+        private void InitializeConnection()
+        {
+            Console.WriteLine($"Connecting to {sv_adress}:{sv_port}");
+
+
+
+            try
+            {
+                client = new TcpClient(sv_adress, sv_port);
+
+                if (client.Connected)
+                {
+                    Console.WriteLine("Connected !");
+                    stream.InitializeStream(client);
+                }
+
+
+            }
+            catch (IOException e)
+            {
+                string ErrorContext = $"An error occured while connecting to \"{sv_adress}:{sv_port}\"";
+                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
+                errorHandler.DispayError();
+            }
+
+
+
+        }
+
+
+
+
         public ResponsePacket ServerListPing()
         {
 
@@ -158,7 +190,8 @@ namespace MC_authNET.Network
                     int compression_threshold = stream.ReadVarInt();
                     Console.WriteLine("Compression enabled !");
                     Console.WriteLine($"packet_Id : {p_id}");
-                }else if(p_id == 0x02) //S->C : Login Success
+                }
+                else if(p_id == 0x02) //S->C : Login Success
                 {
                     string uuid = stream.ReadUUID(16);
                     int name_length = stream.ReadVarInt();
@@ -180,54 +213,7 @@ namespace MC_authNET.Network
             }
         } 
 
-        private void InitializeConnection()
-        {
-            Console.WriteLine($"Connecting to {sv_adress}:{sv_port}");
-
-
-
-            try
-            {
-                client = new TcpClient(sv_adress, sv_port);
-
-                if (client.Connected)
-                {
-                    Console.WriteLine("Connected !");
-                    stream.InitializeStream(client);
-                }
-
-
-            }
-            catch (Exception e)
-            {
-                string ErrorContext = $"An error occured while connecting to \"{sv_adress}:{sv_port}\"";
-                errorHandler.Add(new ErrorMessage(e.Message, ConsoleColor.Red, ErrorContext));
-                errorHandler.DispayError();
-            }
-
-
-
-        }
-
-        private void CheckHandshakePacketError(int packetId, int jsonLenght)
-        {
-            if (packetId != 0x00)
-            {
-                string ErrorContext = $"An error occured while querying a Server List Ping interface";
-                errorHandler.Add(new ErrorMessage("Invalid Packet ID", ConsoleColor.Red, ErrorContext));
-            }
-
-            if (jsonLenght == 0)
-            {
-                string ErrorContext = $"An error occured while querying a Server List Ping interface";
-                errorHandler.Add(new ErrorMessage("Invalid JSON Length", ConsoleColor.Red, ErrorContext));
-            }
-
-            errorHandler.DispayError();
-        }
-
-
-
+    
         #region WORK IN PROGRESS
 
 
@@ -298,6 +284,23 @@ namespace MC_authNET.Network
 
         #endregion
 
+
+        private void CheckHandshakePacketError(int packetId, int jsonLenght)
+        {
+            if (packetId != 0x00)
+            {
+                string ErrorContext = $"An error occured while querying a Server List Ping interface";
+                errorHandler.Add(new ErrorMessage("Invalid Packet ID", ConsoleColor.Red, ErrorContext));
+            }
+
+            if (jsonLenght == 0)
+            {
+                string ErrorContext = $"An error occured while querying a Server List Ping interface";
+                errorHandler.Add(new ErrorMessage("Invalid JSON Length", ConsoleColor.Red, ErrorContext));
+            }
+
+            errorHandler.DispayError();
+        }
 
 
         private void DisposeAll()

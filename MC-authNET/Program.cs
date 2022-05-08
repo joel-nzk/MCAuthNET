@@ -11,7 +11,10 @@ using MC_authNET.Network;
 using MC_authNET.Minecraft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using MC_authNET.Protocol.Util;
+using MC_authNET.Utils.ASCII;
+using MC_authNET.Utils.Extensions;
+using System.Configuration;
+using System.Collections.Specialized;
 
 namespace MC_authNET
 {
@@ -53,31 +56,48 @@ namespace MC_authNET
 
         static void Main(string[] args)
         {
-            Console.Title = "Minecraft Console Client";
-            Console.ForegroundColor = ConsoleColor.Gray;
             Random rnd = new Random();
             int index = 0;
 
-            for (int i = 0; i < 2; i++)
-            {
-                if (index+1 >= names.Length)
-                    index = 0;
-                else
-                    index++;
+
+            DisplayStartTitle();
+
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    if (index + 1 >= names.Length)
+            //        index = 0;
+            //    else
+            //        index++;
 
 
-                MinecraftUser user = new MinecraftUser(email, names[index] +rnd.Next(0,100), password, AccountType.Offline);
-                MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
-                client.LoginToServer(user);
-            }
-           
+            //    MinecraftUser user = new MinecraftUser(email, names[index] + rnd.Next(0, 100), password, AccountType.Offline);
+            //    MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
+            //    client.LoginToServer(user);
+            //}
+
+
+            MinecraftUser user = new MinecraftUser(email, "Player001", password, AccountType.Offline);
+            MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
+            client.LoginToServer(user);
+
 
 
             //JToken jsonData = JToken.Parse(client.ServerListPing().JsonContent);
             //Console.WriteLine(jsonData);
 
-                   
 
+
+        }
+
+
+
+        private static void DisplayStartTitle()
+        {
+           Console.Title = ConfigurationManager.AppSettings.Get("appName");
+
+            ConsoleMore.WriteTitle(ASCII.AppTitle, ConsoleColor.Blue);
+            ConsoleMore.WriteTitle($"Version {ConfigurationManager.AppSettings.Get("version")}", ConsoleColor.Red);
+            ConsoleMore.WriteTitle("https://github.com/Joel-NK2503/MCAuthNET", ConsoleColor.Red);
         }
 
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MC_authNET.Utils.Extensions;
 
 namespace MC_authNET.Protocol.Util
 {
@@ -46,12 +47,10 @@ namespace MC_authNET.Protocol.Util
             {     
                 foreach (ErrorMessage error in errors)
                 {
-                    Console.ForegroundColor = error.Color;
-                    Console.WriteLine($"{error.context} => {error.message}");
+                    ConsoleMore.WriteLine($"{error.context} => {error.message}", error.Color);
                 }
 
                 errors.Clear();
-                Console.ForegroundColor = ConsoleColor.Gray;
                 //Environment.Exit(1);
                                   
             }

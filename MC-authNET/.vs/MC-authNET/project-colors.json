@@ -5,7 +5,17 @@
       "ProjectGuid": "d9783d3e-3ca5-4ec1-94b9-04e8e4dfbef8",
       "DisplayName": "MC-authNET",
       "ColorIndex": 0
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "Miscellaneous Files",
+      "ColorIndex": -1
+    },
+    "9d2c0f39-82d9-4c31-a704-953e86aad2e3": {
+      "ProjectGuid": "9d2c0f39-82d9-4c31-a704-953e86aad2e3",
+      "DisplayName": "Solution Items",
+      "ColorIndex": 1
     }
   },
-  "NextColorIndex": 1
+  "NextColorIndex": 2
 }
