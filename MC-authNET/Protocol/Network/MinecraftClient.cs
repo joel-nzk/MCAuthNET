@@ -247,10 +247,11 @@ namespace MC_authNET.Network
                     {
                         case 0x21:
                             //Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
+                            ConsoleMore.WriteDebug("Keep Alive packet received");
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
                             keepAlivePacket.KeepAliveID = stream.ReadLong(packetData.data);
+                            Console.WriteLine($"Received : {keepAlivePacket.KeepAliveID}");
                             keepAlivePacket.Send(stream);
-                            ConsoleMore.WriteDebug("Keep Alive packet received");
                             break;
                         case 0x0F:
                             ChatMessageClientbound ChatMessageClientboundPacket = new ChatMessageClientbound();
