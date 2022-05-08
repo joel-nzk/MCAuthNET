@@ -11,6 +11,14 @@ using MC_authNET.Protocol.Network;
 
 namespace MC_authNET.Network.Util
 {
+    public struct PacketData
+    {
+        public int id { get; set; }
+        public int length { get; set; }
+        public byte[] data { get; set; }
+    }
+
+
     public class MinecraftStream
     {
         private NetworkStream networkStream;
@@ -135,19 +143,20 @@ namespace MC_authNET.Network.Util
             return Encoding.UTF8.GetString(data);
         }
 
-        public string ReadNextString(byte[] raw_data)
+        public string ReadNextString(Queue<byte> raw_data)
         {
             int length = ReadVarInt(raw_data);
 
             byte[] data = new byte[length];
 
-           Queue<byte> queue_data = new Queue<byte>(raw_data);
-
 
             for (int i = 0; i < length; i++)
             {
-                data[i] = ReadByte(queue_data);
+                data[i] = ReadByte(raw_data);
+
             }
+   
+
 
             return Encoding.UTF8.GetString(data);
         }
@@ -173,15 +182,16 @@ namespace MC_authNET.Network.Util
             return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
         }
 
-        public string ReadUUID(byte[] data_raw)
+        public string ReadUUID(Queue<byte> raw_data)
         {
-
             byte[] data = new byte[16];
-            Queue<byte> queue_data = new Queue<byte>(data_raw);
 
 
-            data.ToList().ForEach(x => x = ReadByte(queue_data));
-        
+            for (int i = 0; i < 16; i++)
+            {
+                data[i] = ReadByte(raw_data);
+
+            }
 
             ulong b1 = BitConverter.ToUInt64(data, 0);
             ulong b2 = BitConverter.ToUInt64(data, 8);
@@ -204,11 +214,7 @@ namespace MC_authNET.Network.Util
             return data;
         }
 
-        public byte ReadByte(byte[] data_raw)
-        {
-            var dataArraytoQueue = new Queue<byte>(data_raw);
-            return ReadByte(dataArraytoQueue); 
-        }
+  
 
         public int ReadVarInt()
         {
@@ -226,16 +232,15 @@ namespace MC_authNET.Network.Util
             return value;
         }
 
-        public int ReadVarInt(byte[] data)
+        public int ReadVarInt(Queue<byte> data)
         {
             int value = 0;
             int length = 0;
 
-            var dataArraytoQueue = new Queue<byte>(data);
 
             while (true)
             {
-                int currentByte = ReadByte(dataArraytoQueue);
+                int currentByte = ReadByte(data);
                 value |= (currentByte & 0x7F) << (length++ * 7);
                 if (length > 5) throw new IOException("VarInt too big");
                 if ((currentByte & 0x80) != 0x80) break;
@@ -243,9 +248,9 @@ namespace MC_authNET.Network.Util
             return value;
         }
 
+
         public byte ReadByte(Queue<byte> cache)
         {
-  
             byte result = cache.Dequeue();
             return result;
 
@@ -258,6 +263,22 @@ namespace MC_authNET.Network.Util
             long_data.ToList().ForEach(x => x = ReadByte(queue_data));
             return BitConverter.ToInt64(long_data);
         }
+
+        public long ReadLong2(byte[] data)
+        {
+            byte[] long_data = new byte[8];
+            Queue<byte> queue_data = new Queue<byte>(data);
+
+            for (int i = 0; i < 8; i++)
+            {
+                long_data[i] = ReadByte(queue_data);
+            }
+
+
+            return BitConverter.ToInt64(long_data);
+        }
+
+
 
         public long ReadVarLong()
         {

@@ -26,7 +26,7 @@ namespace MC_authNET
 
 
         public static string sv_adress = "localhost";
-        public static ushort sv_port = 25565;
+        public static ushort sv_port = 49815;
 
         public static string[] names = 
         {
@@ -75,8 +75,7 @@ namespace MC_authNET
             //    client.LoginToServer(user);
             //}
 
-
-            MinecraftUser user = new MinecraftUser(email, "Player001", password, AccountType.Offline);
+            MinecraftUser user = new MinecraftUser(email, "TheBestPlayer", password, AccountType.Offline);
             MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
             client.LoginToServer(user);
 

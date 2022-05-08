@@ -25,11 +25,12 @@ namespace MC_authNET.Protocol.Network.Packets.Play
             throw new NotImplementedException();
         }
 
-        public void Read(MinecraftStream stream)
+        public void Read(MinecraftStream stream,PacketData packet)
         {
-            //jsonData = stream.ReadNextString(packetData.data);
-            //position = stream.ReadByte(packetData.data);
-            //uuid = stream.ReadUUID(packetData.data);
+            Queue<byte> data = new Queue<byte>(packet.data);
+            jsonData = stream.ReadNextString(data);
+            position = stream.ReadByte(data);
+            uuid = stream.ReadUUID(data);
         }
     }
 }

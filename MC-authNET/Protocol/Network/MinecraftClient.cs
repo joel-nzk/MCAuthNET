@@ -22,12 +22,6 @@ using MC_authNET.Utils.Extensions;
 namespace MC_authNET.Network
 {
 
-    public struct PacketData
-    {
-        public int id { get; set; }
-        public int length { get; set; }
-        public byte[] data { get; set; }
-    }
 
     class MinecraftClient
     {
@@ -239,23 +233,27 @@ namespace MC_authNET.Network
             {
                 while (client.Available > 0)
                 {
-                    PacketData packetData = ReadPacketData();
+                    PacketData packet = ReadPacketData();
 
                     //ConsoleMore.WriteDebug($"Packet : 0x{packetData.id.ToString("X2")}");
 
-                    switch (packetData.id)
+                    switch (packet.id)
                     {
                         case 0x21:
                             //Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
                             ConsoleMore.WriteDebug("Keep Alive packet received");
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
-                            keepAlivePacket.KeepAliveID = stream.ReadLong(packetData.data);
-                            Console.WriteLine($"Received : {keepAlivePacket.KeepAliveID}");
+                            keepAlivePacket.Read(stream, packet);
                             keepAlivePacket.Send(stream);
                             break;
                         case 0x0F:
-                            ChatMessageClientbound ChatMessageClientboundPacket = new ChatMessageClientbound();
                             ConsoleMore.WriteDebug("Chat Message (clientbound) packet received");
+                            ChatMessageClientbound ChatMessageClientboundPacket = new ChatMessageClientbound();
+                            ChatMessageClientboundPacket.Read(stream,packet);
+                            ConsoleMore.WriteInfo($"Content -> {ChatMessageClientboundPacket.jsonData}");
+                            ConsoleMore.WriteInfo($"Position -> {ChatMessageClientboundPacket.position}");
+                            ConsoleMore.WriteInfo($"UUID -> {ChatMessageClientboundPacket.uuid}");
+
                             break;
                     }
                 }
@@ -274,16 +272,17 @@ namespace MC_authNET.Network
         public PacketData ReadPacketData()
         {
             PacketData packet = new PacketData();
-            List<byte> data = new List<byte>();     
+            Queue<byte> data = new Queue<byte>();
             int p_size = stream.ReadVarInt();
             byte[] p_data = stream.ReadBytes(p_size);
 
+            p_data.ToList().ForEach(x => data.Enqueue(x) );
 
-            p_data.ToList().ForEach(x => data.Add(x) );
-
-            packet.id = stream.ReadVarInt(data.ToArray());
+            packet.id = stream.ReadVarInt(data);
             packet.data = data.ToArray();
-            packet.length = p_size;
+
+
+
 
 
             return packet;
