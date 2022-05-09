@@ -28,7 +28,7 @@ namespace MC_authNET.Protocol.Network.Packets.Play
         public void Read(MinecraftStream stream,PacketData packet)
         {
             Queue<byte> data = new Queue<byte>(packet.data);
-            jsonData = stream.ReadNextString(data);
+            jsonData = stream.ReadString(data);
             position = stream.ReadByte(data);
             uuid = stream.ReadUUID(data);
         }

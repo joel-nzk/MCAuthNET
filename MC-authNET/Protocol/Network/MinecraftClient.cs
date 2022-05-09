@@ -33,6 +33,9 @@ namespace MC_authNET.Network
         public string sv_adress;
         public ushort sv_port;
 
+        private int compression_threshold;
+        private bool compressionEnabled = false;
+
 
         public MinecraftClient(string sv_adress, ushort sv_port)
         {
@@ -45,8 +48,9 @@ namespace MC_authNET.Network
 
         private void InitializeConnection()
         {
-            Console.WriteLine($"Connecting to {sv_adress}:{sv_port}");
-            
+            ConsoleMore.WriteLine($"Connecting to {sv_adress}:{sv_port}", ConsoleColor.Green);
+
+
 
             try
             {
@@ -97,10 +101,10 @@ namespace MC_authNET.Network
 
 
                 //S->C - Response
-                int Packetlength = stream.ReadVarInt();
-                int packetId = stream.ReadVarInt();
+                int Packetlength = stream.ReadVarIntRAW();
+                int packetId = stream.ReadVarIntRAW();
 
-                string jsonContent = stream.ReadString();
+                string jsonContent = stream.ReadStringRAW();
                 DisposeAll();
 
                 //return new ResponsePacket(Packetlength, packetId, jsonLength, jsonContent);
@@ -174,26 +178,27 @@ namespace MC_authNET.Network
                 }
 
 
-                int packet_length = stream.ReadVarInt();
-                int packetid = stream.ReadVarInt();
+                int packet_length = stream.ReadVarIntRAW();
+                int packetid = stream.ReadVarIntRAW();
 
 
-                //TODO: Need a description
                 if (packetid == 0x03)
                 {
                     //S->C : Set Compression (Optional)
-                    int compression_threshold = stream.ReadVarInt();
-                    Console.WriteLine("Compression enabled !");
-                    Console.WriteLine($"packet_Id : {packetid}");
+                    compression_threshold = stream.ReadVarIntRAW();
+                    compressionEnabled = true;
+                    ConsoleMore.WriteMessage("Compression is enabled", MessageType.info);
                 }
-                else if(packetid == 0x02) //S->C : Login Success
+
+                if (compressionEnabled)
                 {
-                    string uuid = stream.ReadUUID();
-                    string name = stream.ReadString();
+                    PacketData packet = ReadPacketData();
+                    packetid = packet.id;
+                }
+               
 
-                    JoinGamePacket joinGamePacket = new JoinGamePacket();
-                    joinGamePacket.Read(stream);
-
+                if (packetid == 0x02) //S->C : Login Success
+                {
                     stream.NextState = ConnectionState.Play;                 
                     Thread th = new Thread(new ThreadStart(Update));
                     th.Start();
@@ -241,18 +246,18 @@ namespace MC_authNET.Network
                     {
                         case 0x21:
                             //Console.WriteLine($"id : 0x{packetData.id.ToString("X2")}");
-                            ConsoleMore.WriteDebug("Keep Alive packet received");
+                            ConsoleMore.WriteMessage("Keep Alive packet received",MessageType.debug);
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
                             keepAlivePacket.Read(stream, packet);
                             keepAlivePacket.Send(stream);
                             break;
                         case 0x0F:
-                            ConsoleMore.WriteDebug("Chat Message (clientbound) packet received");
+                            ConsoleMore.WriteMessage("Chat Message (clientbound) packet received",MessageType.debug);
                             ChatMessageClientbound ChatMessageClientboundPacket = new ChatMessageClientbound();
                             ChatMessageClientboundPacket.Read(stream,packet);
-                            ConsoleMore.WriteInfo($"Content -> {ChatMessageClientboundPacket.jsonData}");
-                            ConsoleMore.WriteInfo($"Position -> {ChatMessageClientboundPacket.position}");
-                            ConsoleMore.WriteInfo($"UUID -> {ChatMessageClientboundPacket.uuid}");
+                            ConsoleMore.WriteMessage($"Content -> {ChatMessageClientboundPacket.jsonData}", MessageType.info);
+                            ConsoleMore.WriteMessage($"Position -> {ChatMessageClientboundPacket.position}", MessageType.info);
+                            ConsoleMore.WriteMessage($"UUID -> {ChatMessageClientboundPacket.uuid}", MessageType.info);
 
                             break;
                     }
@@ -272,14 +277,40 @@ namespace MC_authNET.Network
         public PacketData ReadPacketData()
         {
             PacketData packet = new PacketData();
-            Queue<byte> data = new Queue<byte>();
-            int p_size = stream.ReadVarInt();
-            byte[] p_data = stream.ReadBytes(p_size);
 
-            p_data.ToList().ForEach(x => data.Enqueue(x) );
+            int packet_length = stream.ReadVarIntRAW();
+            int data_length = 0;
 
-            packet.id = stream.ReadVarInt(data);
-            packet.data = data.ToArray();
+            if (compressionEnabled)
+                data_length = stream.ReadVarIntRAW();
+   
+            if (data_length != 0 && compressionEnabled)
+            {
+                int compressed_length = packet_length - data_length;
+
+
+                ///TODO
+                ///
+                //Queue<byte> decompressed_packet = stream.DecompressedPacket(data_length);
+                //packet.id = stream.ReadVarInt(decompressed_packet);
+
+                //packet.data = stream.ReadBytes(decompressed_packet, compressed_length);
+                //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
+
+
+            }
+            else
+            {
+                Queue<byte> data = new Queue<byte>();
+                byte[] p_data = stream.ReadBytesRAW(packet_length);
+                p_data.ToList().ForEach(x => data.Enqueue(x));
+                packet.id = stream.ReadVarInt(data);
+                packet.data = data;
+
+                ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
+           
+            }
+
 
 
 
@@ -288,26 +319,16 @@ namespace MC_authNET.Network
             return packet;
         }
 
+
+
+
         #endregion
 
 
-        private void CheckHandshakePacketError(int packetId, int jsonLenght)
+        private string ConvertPacketIdToHEX(int id)
         {
-            if (packetId != 0x00)
-            {
-                string ErrorContext = $"An error occured while querying a Server List Ping interface";
-                errorHandler.Add(new ErrorMessage("Invalid Packet ID", ConsoleColor.Red, ErrorContext));
-            }
-
-            if (jsonLenght == 0)
-            {
-                string ErrorContext = $"An error occured while querying a Server List Ping interface";
-                errorHandler.Add(new ErrorMessage("Invalid JSON Length", ConsoleColor.Red, ErrorContext));
-            }
-
-            errorHandler.DispayError();
+            return $"0x{id.ToString("X2")}";
         }
-
 
         private void DisposeAll()
         {

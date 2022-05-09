@@ -25,7 +25,7 @@ namespace MC_authNET.Protocol.Network.Packets.Play
 
         public void Read(MinecraftStream stream,PacketData packet)
         {
-            KeepAliveID = stream.ReadLong2(packet.data);
+            KeepAliveID = stream.ReadLong(packet.data);
 
         }
     }

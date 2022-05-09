@@ -47,7 +47,7 @@ namespace MC_authNET.Protocol.Util
             {     
                 foreach (ErrorMessage error in errors)
                 {
-                    ConsoleMore.WriteLine($"{error.context} => {error.message}", error.Color);
+                    ConsoleMore.WriteMessage($"{error.context} => {error.message}", MessageType.textLine, error.Color);
                 }
 
                 errors.Clear();

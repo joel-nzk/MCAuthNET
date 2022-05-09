@@ -17,9 +17,22 @@ using MC_authNET.Protocol.Network.Packets.Login;
 using MC_authNET.Protocol.Network;
 using MC_authNET.Protocol.Util;
 using MC_authNET.Protocol.Network.Packets.Play;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace MC_authNET.Utils.Extensions
 {
+    public enum MessageType
+    {
+        title,
+        debug,
+        info,
+        textLine,
+        text
+    }
+
+
+
     public static class ConsoleMore
     {
         private const ConsoleColor originalColor = ConsoleColor.Gray;
@@ -55,7 +68,6 @@ namespace MC_authNET.Utils.Extensions
             WriteLine(text, secondaryColor);
         }
 
-
         public static void Write(string title, ConsoleColor newColor = originalColor)
         {
             Console.ForegroundColor = newColor;
@@ -70,5 +82,29 @@ namespace MC_authNET.Utils.Extensions
             Console.WriteLine(title);
             Console.ForegroundColor = originalColor;
         }
+
+        public static void WriteMessage(string text,MessageType type = MessageType.textLine, ConsoleColor mainColor = ConsoleColor.DarkCyan, ConsoleColor secondaryColor = ConsoleColor.DarkBlue)
+        {
+            switch (type)
+            {
+                case MessageType.title:
+                    WriteTitle(text);
+                    break;
+                case MessageType.debug:
+                    WriteDebug(text);
+                    break;
+                case MessageType.info:
+                    WriteInfo(text);
+                    break;
+                case MessageType.textLine:
+                    WriteLine(text);
+                    break;
+                case MessageType.text:
+                    Write(text);
+                    break;
+            }
+        }
+
+
     }
 }

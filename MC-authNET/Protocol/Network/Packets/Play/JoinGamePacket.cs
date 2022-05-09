@@ -25,8 +25,8 @@ namespace MC_authNET.Protocol.Network.Packets.Play
 
         public void Read(MinecraftStream stream)
         {
-            int packet_length = stream.ReadVarInt();
-            stream.ReadBytes(packet_length);
+            int packet_length = stream.ReadVarIntRAW();
+            stream.ReadBytesRAW(packet_length);
             stream.Buffer.Clear();
         }
     }

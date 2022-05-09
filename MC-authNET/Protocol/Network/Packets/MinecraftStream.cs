@@ -8,6 +8,9 @@ using System.Security.Cryptography;
 using System.Numerics;
 using System.Net.Sockets;
 using MC_authNET.Protocol.Network;
+using System.IO.Compression;
+using System.Text.RegularExpressions;
+
 
 namespace MC_authNET.Network.Util
 {
@@ -15,13 +18,13 @@ namespace MC_authNET.Network.Util
     {
         public int id { get; set; }
         public int length { get; set; }
-        public byte[] data { get; set; }
+        public Queue<byte> data { get; set; }
     }
 
 
     public class MinecraftStream
     {
-        private NetworkStream networkStream;
+        private static NetworkStream networkStream;
         public List<byte> Buffer;
 
         public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_18_2;
@@ -132,18 +135,9 @@ namespace MC_authNET.Network.Util
         #endregion
 
         #region Reading
-        public string ReadString()
-        {
-            int length = ReadVarInt();
+       
 
-            byte[] data = new byte[length];
-
-            networkStream.Read(data);
-
-            return Encoding.UTF8.GetString(data);
-        }
-
-        public string ReadNextString(Queue<byte> raw_data)
+        public string ReadString(Queue<byte> raw_data)
         {
             int length = ReadVarInt(raw_data);
 
@@ -159,29 +153,7 @@ namespace MC_authNET.Network.Util
 
 
             return Encoding.UTF8.GetString(data);
-        }
-
-        public string ReadUUID()
-        {
-
-            byte[] data = new byte[16];
-
-            networkStream.Read(data);
-
-            ulong b1 = BitConverter.ToUInt64(data, 0);
-            ulong b2 = BitConverter.ToUInt64(data, 8);
-
-
-            byte[] bytes = new byte[0];
-            bytes = bytes.Concat(BitConverter.GetBytes(b1)).Concat(BitConverter.GetBytes(b2)).ToArray();
-
-            string uuid = "";
-            foreach (byte b in bytes)
-                uuid += b.ToString("x2");
-
-            return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
-        }
-
+        }  
         public string ReadUUID(Queue<byte> raw_data)
         {
             byte[] data = new byte[16];
@@ -207,29 +179,16 @@ namespace MC_authNET.Network.Util
             return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
         }
 
-        public byte[] ReadBytes(int length)
+        public Queue<byte> ReadBytes(Queue<byte> raw_data,int length)
         {
-            byte[] data = new byte[length];
-            networkStream.Read(data);
-            return data;
-        }
+            Queue<byte> data = new Queue<byte>();
 
-  
-
-        public int ReadVarInt()
-        {
-            int value = 0;
-            int length = 0;
-            int currentByte;
-
-            while (true)
+            for (int i = 0; i < length; i++)
             {
-                currentByte = networkStream.ReadByte();
-                value |= (currentByte & 0x7F) << (length++ * 7);
-                if (length > 5) throw new IOException("VarInt too big");
-                if ((currentByte & 0x80) != 0x80) break;
+                data.Enqueue(ReadByte(raw_data));
             }
-            return value;
+
+            return data;
         }
 
         public int ReadVarInt(Queue<byte> data)
@@ -247,8 +206,6 @@ namespace MC_authNET.Network.Util
             }
             return value;
         }
-
-
         public byte ReadByte(Queue<byte> cache)
         {
             byte result = cache.Dequeue();
@@ -256,15 +213,72 @@ namespace MC_authNET.Network.Util
 
         }
 
-        public long ReadLong(byte[] data)
+        public long ReadLong(Queue<byte> cache)
         {
             byte[] long_data = new byte[8];
-            Queue<byte> queue_data = new Queue<byte>(data); 
-            long_data.ToList().ForEach(x => x = ReadByte(queue_data));
+
+            for (int i = 0; i < 8; i++)
+            {
+                long_data[i] = ReadByte(cache);
+            }
+
+
             return BitConverter.ToInt64(long_data);
         }
 
-        public long ReadLong2(byte[] data)
+        public byte[] ReadBytesRAW(int length)
+        {
+            byte[] data = new byte[length];
+            networkStream.Read(data);
+            return data;
+        }
+
+        public string ReadUUIDRAW()
+        {
+
+            byte[] data = new byte[16];
+
+            networkStream.Read(data);
+
+            ulong b1 = BitConverter.ToUInt64(data, 0);
+            ulong b2 = BitConverter.ToUInt64(data, 8);
+
+
+            byte[] bytes = new byte[0];
+            bytes = bytes.Concat(BitConverter.GetBytes(b1)).Concat(BitConverter.GetBytes(b2)).ToArray();
+
+            string uuid = "";
+            foreach (byte b in bytes)
+                uuid += b.ToString("x2");
+
+            return uuid.Substring(0, 8) + "-" + uuid.Substring(8, 4) + "-" + uuid.Substring(12, 4) + "-" + uuid.Substring(16, 4) + "-" + uuid.Substring(20, 12);
+        }
+        public string ReadStringRAW()
+        {
+            int length = ReadVarIntRAW();
+
+            byte[] data = new byte[length];
+
+            networkStream.Read(data);
+
+            return Encoding.UTF8.GetString(data);
+        }
+        public int ReadVarIntRAW()
+        {
+            int value = 0;
+            int length = 0;
+            int currentByte;
+
+            while (true)
+            {
+                currentByte = networkStream.ReadByte();
+                value |= (currentByte & 0x7F) << (length++ * 7);
+                if (length > 5) throw new IOException("VarInt too big");
+                if ((currentByte & 0x80) != 0x80) break;
+            }
+            return value;
+        }
+        public long ReadLongRAW(byte[] data)
         {
             byte[] long_data = new byte[8];
             Queue<byte> queue_data = new Queue<byte>(data);
@@ -278,33 +292,7 @@ namespace MC_authNET.Network.Util
             return BitConverter.ToInt64(long_data);
         }
 
-
-
-        public long ReadVarLong()
-        {
-            long value = 0;
-            int length = 0;
-            int currentByte;
-
-            while (true)
-            {
-                currentByte = networkStream.ReadByte();
-                value |= (currentByte & 0x7F) << (length++ * 7);
-                if (length > 10) throw new IOException("VarLong is too big");
-                if ((currentByte & 0x80) != 0x80) break;
-            }
-            return value;
  
-        }
-
-        public long ReadLong()
-        {       
-            byte[] data = new byte[8];
-            networkStream.Read(data);
-            return BitConverter.ToInt64(data);
-        }
-
-       
 
         #endregion
 
@@ -400,6 +388,51 @@ namespace MC_authNET.Network.Util
         }
 
         #endregion
+
+        public int DecompressedInt(int value)
+        {
+            byte[] byteBuffer = BitConverter.GetBytes(value);
+
+            using (var memoryStream = new MemoryStream())
+            {
+                int dataLength = BitConverter.ToInt32(byteBuffer, 0);
+                memoryStream.Write(byteBuffer, 4, byteBuffer.Length - 4);
+
+                var buffer = new byte[dataLength];
+
+                memoryStream.Position = 0;
+                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                {
+                    gZipStream.Read(buffer, 0, buffer.Length);
+                }
+
+                return BitConverter.ToInt32(buffer);
+            }
+        }
+
+        public Queue<byte> DecompressedPacket(int length)
+        {
+            byte[] byteBuffer = ReadBytesRAW(length);
+
+            using (var memoryStream = new MemoryStream())
+            {
+                int dataLength = BitConverter.ToInt32(byteBuffer, 0);
+                memoryStream.Write(byteBuffer, 4, byteBuffer.Length - 4);
+
+                var buffer = new byte[dataLength];
+
+                memoryStream.Position = 0;
+                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                {
+                    gZipStream.Read(buffer, 0, buffer.Length);
+                }
+
+                return new Queue<byte>(buffer);
+            }
+        }
+
+
+
 
         public void Dispose()
         {
