@@ -389,48 +389,6 @@ namespace MC_authNET.Network.Util
 
         #endregion
 
-        public int DecompressedInt(int value)
-        {
-            byte[] byteBuffer = BitConverter.GetBytes(value);
-
-            using (var memoryStream = new MemoryStream())
-            {
-                int dataLength = BitConverter.ToInt32(byteBuffer, 0);
-                memoryStream.Write(byteBuffer, 4, byteBuffer.Length - 4);
-
-                var buffer = new byte[dataLength];
-
-                memoryStream.Position = 0;
-                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                {
-                    gZipStream.Read(buffer, 0, buffer.Length);
-                }
-
-                return BitConverter.ToInt32(buffer);
-            }
-        }
-
-        public Queue<byte> DecompressedPacket(int length)
-        {
-            byte[] byteBuffer = ReadBytesRAW(length);
-
-            using (var memoryStream = new MemoryStream())
-            {
-                int dataLength = BitConverter.ToInt32(byteBuffer, 0);
-                memoryStream.Write(byteBuffer, 4, byteBuffer.Length - 4);
-
-                var buffer = new byte[dataLength];
-
-                memoryStream.Position = 0;
-                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                {
-                    gZipStream.Read(buffer, 0, buffer.Length);
-                }
-
-                return new Queue<byte>(buffer);
-            }
-        }
-
 
 
 

@@ -18,6 +18,7 @@ using MC_authNET.Protocol.Network;
 using MC_authNET.Protocol.Util;
 using MC_authNET.Protocol.Network.Packets.Play;
 using MC_authNET.Utils.Extensions;
+using MC_authNET.Utils.Compression;
 
 namespace MC_authNET.Network
 {
@@ -281,18 +282,20 @@ namespace MC_authNET.Network
             int packet_length = stream.ReadVarIntRAW();
             int data_length = 0;
 
-            if (compressionEnabled)
+            if (compressionEnabled && data_length == 0)
                 data_length = stream.ReadVarIntRAW();
    
             if (data_length != 0 && compressionEnabled)
             {
-                int compressed_length = packet_length - data_length;
+                Queue<byte> raw_data = new Queue<byte>(stream.ReadBytesRAW(packet_length));
+                data_length = stream.ReadVarInt(raw_data);
 
 
-                ///TODO
-                ///
-                //Queue<byte> decompressed_packet = stream.DecompressedPacket(data_length);
-                //packet.id = stream.ReadVarInt(decompressed_packet);
+                byte[] compressed_packet = Decompression.Decompress(raw_data.ToArray(), data_length);
+
+
+
+
 
                 //packet.data = stream.ReadBytes(decompressed_packet, compressed_length);
                 //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
