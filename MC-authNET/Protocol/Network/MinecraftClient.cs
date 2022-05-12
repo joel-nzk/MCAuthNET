@@ -195,6 +195,7 @@ namespace MC_authNET.Network
                 {
                     PacketData packet = ReadPacketData();
                     packetid = packet.id;
+                    Console.WriteLine("test : "+packet.id);
                 }
                
 
@@ -221,8 +222,7 @@ namespace MC_authNET.Network
         {
             Stopwatch stopWatch = new Stopwatch();
             while (client.Connected)
-            {
-                
+            {             
                 stopWatch.Start();
                 HandlePacket();
                 stopWatch.Stop();
@@ -273,7 +273,7 @@ namespace MC_authNET.Network
         }
 
 
-     
+        int counter2 = 0;
  
         public PacketData ReadPacketData()
         {
@@ -282,19 +282,39 @@ namespace MC_authNET.Network
             int packet_length = stream.ReadVarIntRAW();
             int data_length = 0;
 
+
+            //data_length est toujours = 0 donc il lis toujours
             if (compressionEnabled && data_length == 0)
-                data_length = stream.ReadVarIntRAW();
-   
-            if (data_length != 0 && compressionEnabled)
             {
-                Queue<byte> raw_data = new Queue<byte>(stream.ReadBytesRAW(packet_length));
-                data_length = stream.ReadVarInt(raw_data);
+                data_length = stream.ReadVarIntRAW();
+
+            }
 
 
-                byte[] compressed_packet = Decompression.Decompress(raw_data.ToArray(), data_length);
+            
+
+            if (data_length > 0 && compressionEnabled)
+            {
+                ConsoleMore.WriteMessage($"Compressed packet received", MessageType.debug);
+
+                byte[] compressed_data = stream.ReadBytesRAW(packet_length);
+                data_length = stream.ReadVarInt(new Queue<byte>(compressed_data));
+
+
+                //int compressed_data_length = BitConverter.ToInt32(ZipCompression.Compress(BitConverter.GetBytes(data_length)));
 
 
 
+                //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(id)})", MessageType.debug);
+
+                //byte[] compressed_packet = Decompression.Decompress(raw_data.ToArray());
+
+                if (counter2 > 0)
+                {
+                    int tt = 0;
+                }
+
+                counter2++;
 
 
                 //packet.data = stream.ReadBytes(decompressed_packet, compressed_length);
@@ -304,14 +324,17 @@ namespace MC_authNET.Network
             }
             else
             {
+
                 Queue<byte> data = new Queue<byte>();
                 byte[] p_data = stream.ReadBytesRAW(packet_length);
                 p_data.ToList().ForEach(x => data.Enqueue(x));
                 packet.id = stream.ReadVarInt(data);
+                packet.length = packet_length;
                 packet.data = data;
 
+
                 ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
-           
+
             }
 
 
@@ -322,6 +345,7 @@ namespace MC_authNET.Network
             return packet;
         }
 
+        int counter = 0;
 
 
 
