@@ -307,7 +307,7 @@ namespace MC_authNET.Network
                 packet.id = stream.ReadVarInt(data);
                 packet.data = data;
 
-                ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
+                //ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
            
             }
 
