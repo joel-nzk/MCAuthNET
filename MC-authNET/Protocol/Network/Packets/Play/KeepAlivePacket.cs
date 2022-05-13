@@ -2,6 +2,7 @@
 using MC_authNET.Network.Util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,5 +29,7 @@ namespace MC_authNET.Protocol.Network.Packets.Play
             KeepAliveID = stream.ReadLong(packet.data);
 
         }
+
+ 
     }
 }

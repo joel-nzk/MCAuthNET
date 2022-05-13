@@ -34,9 +34,6 @@ namespace MC_authNET.Network
         public string sv_adress;
         public ushort sv_port;
 
-        private int compression_threshold;
-        private bool compressionEnabled = false;
-
 
         public MinecraftClient(string sv_adress, ushort sv_port)
         {
@@ -44,7 +41,6 @@ namespace MC_authNET.Network
             errorHandler = new ErrorHandler();
             stream.sv_adress = this.sv_adress = sv_adress;
             stream.sv_port = this.sv_port = sv_port;
-
         }
 
         private void InitializeConnection()
@@ -77,8 +73,6 @@ namespace MC_authNET.Network
 
 
         }
-
-
 
 
         public void ServerListPing()
@@ -186,16 +180,15 @@ namespace MC_authNET.Network
                 if (packetid == 0x03)
                 {
                     //S->C : Set Compression (Optional)
-                    compression_threshold = stream.ReadVarIntRAW();
-                    compressionEnabled = true;
+                    stream.compression_threshold = stream.ReadVarIntRAW();
+                    stream.compressionEnabled = true;
                     ConsoleMore.WriteMessage("Compression is enabled", MessageType.info);
                 }
 
-                if (compressionEnabled)
+                if (stream.compressionEnabled)
                 {
                     PacketData packet = ReadPacketData();
                     packetid = packet.id;
-                    Console.WriteLine("test : "+packet.id);
                 }
                
 
@@ -213,10 +206,6 @@ namespace MC_authNET.Network
                 errorHandler.DispayError();
             }
         } 
-
-    
-        #region WORK IN PROGRESS
-
 
         private void Update()
         {
@@ -251,6 +240,8 @@ namespace MC_authNET.Network
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
                             keepAlivePacket.Read(stream, packet);
                             keepAlivePacket.Send(stream);
+
+
                             break;
                         case 0x0F:
                             ConsoleMore.WriteMessage("Chat Message (clientbound) packet received",MessageType.debug);
@@ -272,84 +263,72 @@ namespace MC_authNET.Network
             }
         }
 
-
-        int counter2 = 0;
- 
         public PacketData ReadPacketData()
         {
             PacketData packet = new PacketData();
-
+            Queue<byte> packetData = new Queue<byte>();
             int packet_length = stream.ReadVarIntRAW();
-            int data_length = 0;
+            int packet_data_length = 0;
+            int packet_id = 0;
 
 
-            //data_length est toujours = 0 donc il lis toujours
-            if (compressionEnabled && data_length == 0)
+
+            ///<summary>
+            /// For more details -> https://wiki.vg/Protocol#With_compression
+            ///</summary>
+            if (stream.compressionEnabled && packet_length > stream.compression_threshold)
             {
-                data_length = stream.ReadVarIntRAW();
+                byte[] raw_data = stream.ReadBytesRAW(packet_length);
+                raw_data.ToList().ForEach(x => packetData.Enqueue(x));
 
-            }
+                packet_data_length = stream.ReadVarInt(packetData);
+                byte[] compressed_data = packetData.ToArray();
+                byte[] uncompressed_data = Zlib.Decompress(compressed_data, packet_data_length);
 
+                packetData.Clear();
 
-            
+                for (int i = 0; i < uncompressed_data.Length; i++)
+                    packetData.Enqueue(uncompressed_data[i]);
 
-            if (data_length > 0 && compressionEnabled)
-            {
-                ConsoleMore.WriteMessage($"Compressed packet received", MessageType.debug);
-
-                byte[] compressed_data = stream.ReadBytesRAW(packet_length);
-                data_length = stream.ReadVarInt(new Queue<byte>(compressed_data));
-
-
-                //int compressed_data_length = BitConverter.ToInt32(ZipCompression.Compress(BitConverter.GetBytes(data_length)));
+                packet_id = stream.ReadVarInt(packetData);
 
 
-
-                //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(id)})", MessageType.debug);
-
-                //byte[] compressed_packet = Decompression.Decompress(raw_data.ToArray());
-
-                if (counter2 > 0)
-                {
-                    int tt = 0;
-                }
-
-                counter2++;
-
-
-                //packet.data = stream.ReadBytes(decompressed_packet, compressed_length);
-                //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
-
-
+                //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(packet_id)})", MessageType.debug);
             }
             else
             {
-
-                Queue<byte> data = new Queue<byte>();
-                byte[] p_data = stream.ReadBytesRAW(packet_length);
-                p_data.ToList().ForEach(x => data.Enqueue(x));
-                packet.id = stream.ReadVarInt(data);
-                packet.length = packet_length;
-                packet.data = data;
+                if (stream.compressionEnabled)
+                    packet_data_length = stream.ReadVarIntRAW();
 
 
-                ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet.id)})", MessageType.debug);
+                byte[] raw_data = stream.ReadBytesRAW(packet_length);
+                raw_data.ToList().ForEach(x => packetData.Enqueue(x));
 
+
+
+
+                packet_id = stream.ReadVarInt(packetData);
+
+
+
+
+                //ConsoleMore.WriteMessage($"Uncompressed packet received ({ConvertPacketIdToHEX(packet_id)})", MessageType.debug);
             }
 
 
 
-
+            packet.id = packet_id;
+            packet.data = packetData;
 
 
             return packet;
+
+
+
+
+
+
         }
-
-        int counter = 0;
-
-
-
-        #endregion
 
 
         private string ConvertPacketIdToHEX(int id)

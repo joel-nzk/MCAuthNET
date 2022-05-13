@@ -10,14 +10,13 @@ using System.Net.Sockets;
 using MC_authNET.Protocol.Network;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
-
+using MC_authNET.Utils.Compression;
 
 namespace MC_authNET.Network.Util
 {
     public struct PacketData
     {
         public int id { get; set; }
-        public int length { get; set; }
         public Queue<byte> data { get; set; }
     }
 
@@ -30,9 +29,11 @@ namespace MC_authNET.Network.Util
         public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_18_2;
         public ConnectionState NextState = ConnectionState.Status;
 
-
         public string sv_adress;
         public ushort sv_port;
+
+        public bool compressionEnabled = false;
+        public int compression_threshold;
 
 
 
@@ -49,24 +50,68 @@ namespace MC_authNET.Network.Util
 
         public void SendPacket(int id)
         {
-            byte[] buffer = Buffer.ToArray();
+            byte[] packet_length;
+            byte[] uncompressed_data_length;
+            byte[] packet_id;
+            byte[] packet_data;
+
+            packet_data = Buffer.ToArray();
             Buffer.Clear();
 
             WriteVarInt(id);
-            var packet_id = Buffer.ToArray();
+            packet_id = Buffer.ToArray();
+
             Buffer.Clear();
 
-            WriteVarInt(buffer.Length + packet_id.Length);
-            var bufferLenght = Buffer.ToArray();
+            WriteVarInt(packet_data.Length + packet_id.Length);
+            packet_length = Buffer.ToArray();
 
 
-            networkStream.Write(bufferLenght, 0, bufferLenght.Length);
-            networkStream.Write(packet_id, 0, packet_id.Length);
-            networkStream.Write(buffer, 0, buffer.Length);
+
+            if (compressionEnabled && packet_length.Length > compression_threshold)
+            {
+                Buffer.Clear();
+                List<byte> uncompressed_data = new List<byte>();
+                uncompressed_data.AddRange(packet_id);
+                uncompressed_data.AddRange(packet_data);
+
+
+
+                uncompressed_data_length = packet_length;
+                byte[] compressed_data = Zlib.Compress(uncompressed_data.ToArray());
+
+                WriteVarInt(uncompressed_data_length.Length + compressed_data.Length);
+                packet_length = Buffer.ToArray();
+
+
+                networkStream.Write(packet_length, 0, packet_length.Length);
+                networkStream.Write(uncompressed_data_length, 0, uncompressed_data_length.Length);
+                networkStream.Write(compressed_data, 0, compressed_data.Length);
+
+            }
+            else
+            {
+                networkStream.Write(packet_length, 0, packet_length.Length);
+
+                if (compressionEnabled)
+                {
+                    Buffer.Clear();
+                    WriteVarInt(0);
+
+                    uncompressed_data_length = Buffer.ToArray();
+                    networkStream.Write(uncompressed_data_length, 0, uncompressed_data_length.Length);
+                }
+
+                networkStream.Write(packet_id, 0, packet_id.Length);
+                networkStream.Write(packet_data, 0, packet_data.Length);
+            }
+
+
 
 
             Buffer.Clear();
             networkStream.Flush();
+
         }
 
 
@@ -183,7 +228,7 @@ namespace MC_authNET.Network.Util
         {
             Queue<byte> data = new Queue<byte>();
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < raw_data.Count; i++)
             {
                 data.Enqueue(ReadByte(raw_data));
             }
@@ -215,9 +260,9 @@ namespace MC_authNET.Network.Util
 
         public long ReadLong(Queue<byte> cache)
         {
-            byte[] long_data = new byte[8];
+            byte[] long_data = new byte[cache.Count];
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < cache.Count; i++)
             {
                 long_data[i] = ReadByte(cache);
             }
