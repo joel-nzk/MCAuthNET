@@ -17,6 +17,8 @@ namespace MC_authNET.Network.Util
     public struct PacketData
     {
         public int id { get; set; }
+        public int length { get; set; }
+
         public Queue<byte> data { get; set; }
     }
 
@@ -112,6 +114,9 @@ namespace MC_authNET.Network.Util
             Buffer.Clear();
             networkStream.Flush();
 
+
+
+
         }
 
 
@@ -121,7 +126,7 @@ namespace MC_authNET.Network.Util
         {
             List<byte> local_buffer = _buffer == null ? Buffer : _buffer;
 
-  
+
             while (true)
             {
                 if ((value & ~0x7F) == 0)
@@ -260,9 +265,9 @@ namespace MC_authNET.Network.Util
 
         public long ReadLong(Queue<byte> cache)
         {
-            byte[] long_data = new byte[cache.Count];
+            byte[] long_data = new byte[8];
 
-            for (int i = 0; i < cache.Count; i++)
+            for (int i = 0; i < 8; i++)
             {
                 long_data[i] = ReadByte(cache);
             }

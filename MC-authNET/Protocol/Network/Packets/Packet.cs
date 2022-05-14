@@ -17,6 +17,7 @@ namespace MC_authNET.Network.Packet
 
         public abstract void Send(MinecraftStream stream);
 
-
+        //public bool compressionEnabled = false;
+        //public int compression_threshold;
     }
 }
