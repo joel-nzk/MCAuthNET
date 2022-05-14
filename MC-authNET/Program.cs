@@ -56,25 +56,15 @@ namespace MC_authNET
 
         static void Main(string[] args)
         {
-            Random rnd = new Random();
-            int index = 0;
-
-
-            DisplayStartTitle();
-
-
-
+            Start();
             MinecraftUser user = new MinecraftUser(email, username, password, AccountType.Offline);
             MinecraftClient client = new MinecraftClient(sv_adress, sv_port);
             client.LoginToServer(user);
-
-
-
         }
 
 
 
-        private static void DisplayStartTitle()
+        private static void Start()
         {
             Console.Title = ConfigurationManager.AppSettings.Get("appName");
             ConsoleMore.WriteTitle(ASCII.AppTitle, ConsoleColor.Blue);

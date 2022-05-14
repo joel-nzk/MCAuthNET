@@ -123,8 +123,6 @@ namespace MC_authNET.Network
                 stream.NextState = ConnectionState.Login;
 
 
-
-
                 //C->S : Handshake 
                 HandshakePacket handshakePacket = new HandshakePacket();
                 handshakePacket.Send(stream);
@@ -240,8 +238,6 @@ namespace MC_authNET.Network
                             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
                             keepAlivePacket.Read(stream, packet);
                             keepAlivePacket.Send(stream);
-
-
                             break;
                         case 0x0F:
                             ConsoleMore.WriteMessage("Chat Message (clientbound) packet received",MessageType.debug);
@@ -266,12 +262,13 @@ namespace MC_authNET.Network
         public PacketData ReadPacketData()
         {
             PacketData packet = new PacketData();
+
             Queue<byte> packetData = new Queue<byte>();
-            int packet_length = stream.ReadVarIntRAW();
+            
             int packet_data_length = 0;
             int packet_id = 0;
 
-
+            int packet_length = stream.ReadVarIntRAW();
 
             ///<summary>
             /// For more details -> https://wiki.vg/Protocol#With_compression
@@ -282,6 +279,7 @@ namespace MC_authNET.Network
                 raw_data.ToList().ForEach(x => packetData.Enqueue(x));
 
                 packet_data_length = stream.ReadVarInt(packetData);
+
                 byte[] compressed_data = packetData.ToArray();
                 byte[] uncompressed_data = Zlib.Decompress(compressed_data, packet_data_length);
 
@@ -292,23 +290,22 @@ namespace MC_authNET.Network
 
                 packet_id = stream.ReadVarInt(packetData);
 
+                packet.isCompressed = true;
+
 
                 //ConsoleMore.WriteMessage($"Compressed packet received ({ConvertPacketIdToHEX(packet_id)})", MessageType.debug);
             }
             else
             {
-                if (stream.compressionEnabled)
-                    packet_data_length = stream.ReadVarIntRAW();
-
-
                 byte[] raw_data = stream.ReadBytesRAW(packet_length);
                 raw_data.ToList().ForEach(x => packetData.Enqueue(x));
 
 
-
+                if (stream.compressionEnabled)
+                    packet_data_length = stream.ReadVarInt(packetData);
 
                 packet_id = stream.ReadVarInt(packetData);
-
+                packet.isCompressed = false;
 
 
 
