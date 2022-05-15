@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Protocol.Network.Handler
 {
-    internal class PacketHandler
+    public class PacketHandler
     {
     }
 }

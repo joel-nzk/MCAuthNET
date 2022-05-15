@@ -30,7 +30,7 @@ namespace MC_authNET.Network.Util
         private static NetworkStream networkStream;
         public List<byte> Buffer;
 
-        public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_18_2;
+        public ProtocolVersion ProtocolVersion = ProtocolVersion.v_1_16_5;
         public ConnectionState NextState = ConnectionState.Status;
 
         public string sv_adress;
@@ -52,6 +52,25 @@ namespace MC_authNET.Network.Util
             networkStream = client.GetStream();
         }
 
+        public void sendEmptyPacket(int id)
+        {
+            WriteVarInt(id);
+            var packet_id = Buffer.ToArray();
+            Buffer.Clear();
+
+            WriteVarInt(packet_id.Length);
+            var bufferLenght = Buffer.ToArray();
+            Buffer.Clear();
+
+            networkStream.Write(bufferLenght, 0, bufferLenght.Length);
+            networkStream.Write(packet_id, 0, packet_id.Length);
+
+
+            Buffer.Clear();
+            networkStream.Flush();
+
+        }
+
         public void SendPacket(int id)
         {
             byte[] raw_packet_data;
@@ -60,6 +79,7 @@ namespace MC_authNET.Network.Util
             byte[] packet_data;
 
 
+           
             packet_data = Buffer.ToArray();
             Buffer.Clear();
 

@@ -17,8 +17,10 @@ namespace MC_authNET.Network.Packet.Status
 
         public override void Send(MinecraftStream stream)
         {
-            stream.WriteByte(0x01);
-            stream.WriteByte(PacketId);
+            //stream.WriteByte(0x01);
+            //stream.WriteByte(PacketId);
+
+            stream.sendEmptyPacket(PacketId);
         }
     }
 }

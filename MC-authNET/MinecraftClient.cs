@@ -19,12 +19,13 @@ using MC_authNET.Protocol.Util;
 using MC_authNET.Protocol.Network.Packets.Play;
 using MC_authNET.Utils.Extensions;
 using MC_authNET.Utils.Compression;
+using MC_authNET.Protocol.Network.Handler;
 
 namespace MC_authNET.Network
 {
 
 
-    class MinecraftClient
+    class MinecraftClient : MinecraftCommand
     {
         private MinecraftStream stream;
         private TcpClient client;
@@ -96,11 +97,19 @@ namespace MC_authNET.Network
 
 
                 //S->C - Response
-                int Packetlength = stream.ReadVarIntRAW();
-                int packetId = stream.ReadVarIntRAW();
+                PacketData packet = ReadPacketData();
 
-                string jsonContent = stream.ReadStringRAW();
+
+                //int Packetlength = stream.ReadVarIntRAW();
+                //int packetId = stream.ReadVarIntRAW();
+
+                //int jsonLength = stream.ReadVarIntRAW();
+                //string jsonContent = stream.ReadStringRAW();
+
+                Console.WriteLine(Encoding.UTF8.GetString(packet.data.ToArray()));
+
                 DisposeAll();
+
 
                 //return new ResponsePacket(Packetlength, packetId, jsonLength, jsonContent);
             }

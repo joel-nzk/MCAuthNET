@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace MC_authNET.Protocol.Network.Handler
 {
-    public interface IMcClientCmdHandler
+    public class MinecraftCommand
     {
+
+        void InitializeConnection()
+        {
+
+        }
+
     }
 }
