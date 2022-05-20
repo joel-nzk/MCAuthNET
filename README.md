@@ -14,8 +14,8 @@ This is a hobby project i work on my free time so don't except it to be updated 
 
 | link | description |
 |---|---|
-|[tutorial](tutorial.md) | Begin with Node.js and mineflayer |
-| [FAQ.md](FAQ.md) | Got a question ? go there first |
+|[tutorial](#) | A définir... |
+
 
 ## Getting started
 - A venir..
