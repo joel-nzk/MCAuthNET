@@ -5,7 +5,7 @@ A Minecraft (Java Edition) Command-Line interface written in C#
 - A venir..
 
 ## Supported Version
-- Java ( 1.17.1 - 1.18.1 )
+- Java ( 1.16.5 - 1.18.1 )
 
 ## About
 This is a hobby project i work on my free time so don't except it to be updated to work on each new version of Minecraft or as if it was a real library. It is more a project where you could pick up some code to help you understanding the game protocol.
