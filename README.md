@@ -1,8 +1,12 @@
 # MCAuthNET
 A Minecraft (Java Edition) Command-Line interface written in C#
 
-## Features
-- A venir..
+
+
+![Capture d'écran 2024-10-12 225648](https://github.com/user-attachments/assets/3a6a0411-e0f2-4e3f-b4a8-a067f0526151)
+
+
+
 
 ## Supported Version
 - Java ( 1.16.5 - 1.18.1 )
@@ -20,12 +24,4 @@ This is a hobby project i work on my free time so don't except it to be updated 
 ## Getting started
 - A venir..
 
-
-
-
-# Thanks to
-These repositories/website were really usefull to build this project.
-
-- https://github.com/MCCTeam/Minecraft-Console-Client
-- https://github.com/kennyvv/Alex
 
